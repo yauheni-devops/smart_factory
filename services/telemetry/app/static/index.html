@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Завод строительных материалов — схема</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #cfd8e3; font-family: Segoe UI, system-ui, sans-serif; }
+    header {
+      background: #16324f;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    header h1 { margin: 0; font-size: 16px; }
+    header .meta { font-size: 13px; opacity: 0.9; }
+    header .err { color: #ffb4b4; }
+    .pto-link {
+      align-self: center;
+      padding: 7px 12px;
+      border: 1px solid rgba(255,255,255,.5);
+      border-radius: 5px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pto-link:hover, .pto-link:focus-visible { background: rgba(255,255,255,.12); }
+    .wrap { max-width: 1600px; margin: 0 auto; padding: 8px; }
+    .scheme { position: relative; }
+    .scheme img {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fff;
+      border: 1px solid #8a97a6;
+    }
+    .spot {
+      position: absolute;
+      padding: 5px 7px 6px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 2px solid #1f4e79;
+      border-radius: 5px;
+      font-size: 12px;
+      line-height: 1.2;
+      color: #102033;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    }
+    .spot.ktp { background: rgba(255, 232, 190, 0.96); border-color: #c45e00; }
+    .spot.reserve { border-style: dashed; border-color: #889; color: #667; background: rgba(245,245,245,.92); }
+    .spot .site-name { display: block; margin: 0 0 3px; overflow: hidden; color: #16324f; font-size: 10px; font-weight: 700; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+    .spot .metrics { margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; }
+    .spot .metrics li { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; }
+    .spot[data-id^="workshop-"] { padding: 4px 5px 5px; font-size: 10px; }
+    .spot[data-id^="workshop-"] .metrics li { gap: 3px; }
+    .spot[data-id^="workshop-"] .metrics b { font-size: 9px; white-space: nowrap; }
+    .spot .empty { font-weight: 600; color: #667; }
+    .metric-legend { margin: 0 4px 8px; color: #586779; font-size: 12px; line-height: 1.5; }
+    .workshops-panel {
+      margin-top: 10px;
+      padding: 14px;
+      background: #fff;
+      border: 1px solid #8a97a6;
+      border-radius: 6px;
+    }
+    .workshops-panel h2 { margin: 0 0 4px; color: #16324f; font-size: 18px; }
+    .workshops-hint { margin: 0 0 12px; color: #586779; font-size: 13px; }
+    .workshops-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .workshop-card { padding: 11px 12px; border: 1px solid #d5dde6; border-left: 4px solid #2f75a5; border-radius: 5px; }
+    .workshop-card h3 { margin: 0 0 9px; color: #203b55; font-size: 15px; }
+    .sensor-values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .sensor { min-width: 0; padding: 7px 8px; background: #f2f6fa; border-radius: 4px; }
+    .sensor-label { display: block; margin-bottom: 3px; color: #637387; font-size: 11px; }
+    .sensor-value { display: block; overflow-wrap: anywhere; color: #172d42; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sensor-value.missing { color: #8290a0; font-weight: 500; }
+    @media (max-width: 760px) {
+      header { flex-wrap: wrap; }
+      .workshops-grid { grid-template-columns: 1fr; }
+      .sensor-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Мониторинг по технологической схеме завода строительных материалов</h1>
+    <div class="meta" id="meta">Подключение…</div>
+    <a class="pto-link" id="pto-link" href="http://127.0.0.1:8086/ui">ПТО</a>
+  </header>
+  <div class="wrap">
+    <div class="scheme">
+      <img id="scheme" src="/ui/scheme" alt="Технологическая схема завода строительных материалов">
+      <div class="spot" data-id="abk" style="left:3%;top:10%;width:12%"></div>
+      <div class="spot ktp" data-id="ktp-1" style="left:40%;top:10%;width:20%"></div>
+
+      <div class="spot" data-id="workshop-raw-prep" style="left:16.5%;top:61%;width:9.5%"></div>
+      <div class="spot" data-id="workshop-dry-mix-1" style="left:27%;top:61%;width:9.5%"></div>
+      <div class="spot" data-id="workshop-dry-mix-2" style="left:37%;top:61%;width:9.5%"></div>
+      <div class="spot" data-id="workshop-emulsion" style="left:47%;top:61%;width:9.5%"></div>
+      <div class="spot" data-id="workshop-compressor" style="left:57.2%;top:61%;width:9.5%"></div>
+      <div class="spot reserve" data-id="workshop-reserve-1" style="left:69%;top:61%;width:9%"></div>
+      <div class="spot reserve" data-id="workshop-reserve-2" style="left:78%;top:61%;width:9%"></div>
+      <div class="spot" data-id="boiler-main" style="left:65%;top:10%;width:15%"></div>
+      <div class="spot" data-id="boiler-backup" style="left:82%;top:10%;width:15%"></div>
+
+      <div class="spot" data-id="warehouse-raw" style="left:3%;top:34%;width:14%"></div>
+      <div class="spot" data-id="warehouse-fg-1" style="left:25%;top:34%;width:14%"></div>
+      <div class="spot" data-id="warehouse-fg-2" style="left:48%;top:34%;width:14%"></div>
+      <div class="spot" data-id="warehouse-fuel" style="left:65%;top:34%;width:14%"></div>
+    </div>
+    <p class="metric-legend">Обозначения: P — мощность · Uнн — напряжение · t — температура · Q — тепловая мощность · бар — давление · Осв — освещение.</p>
+    <section class="workshops-panel" aria-labelledby="workshops-title">
+      <h2 id="workshops-title">Цехи и датчики</h2>
+      <p class="workshops-hint">Показания обновляются автоматически каждые 5 секунд</p>
+      <div class="workshops-grid" id="workshops" aria-live="polite"></div>
+    </section>
+  </div>
+  <script>
+    document.getElementById("pto-link").href = `${window.location.protocol}//${window.location.hostname}:8086/ui`;
+    const METRICS = {
+      power_kw: "P", lighting_kw: "Осв", voltage_lv_v: "Uнн", voltage_v: "U",
+      current_a: "I", temp_c: "t", oil_temp_c: "t масла",
+      heat_mw: "Q", pressure_bar: "бар"
+    };
+    const SITE_LABELS = {
+      abk: "АБК", "ktp-1": "КТП",
+      "workshop-raw-prep": "Сырьё",
+      "workshop-dry-mix-1": "Смеси 1",
+      "workshop-dry-mix-2": "Смеси 2",
+      "workshop-emulsion": "Эмульсия",
+      "workshop-compressor": "Компр.",
+      "workshop-reserve-1": "Резерв 1",
+      "workshop-reserve-2": "Резерв 2",
+      "boiler-main": "Котельная осн.", "boiler-backup": "Котельная резервная",
+      "warehouse-raw": "Склад сырья",
+      "warehouse-fg-1": "Склад ГП 1", "warehouse-fg-2": "Склад ГП 2",
+      "warehouse-fuel": "Склад ГСМ"
+    };
+    const SHOW = {
+      workshop: ["power_kw", "temp_c"],
+      boiler: ["heat_mw", "pressure_bar"],
+      warehouse: ["temp_c", "lighting_kw"],
+      abk: ["temp_c", "lighting_kw"],
+      ktp: ["power_kw", "voltage_lv_v", "oil_temp_c"]
+    };
+    const WORKSHOP_METRICS = [
+      { key: "power_kw", label: "Мощность", unit: "кВт" },
+      { key: "voltage_v", label: "Напряжение", unit: "В" },
+      { key: "current_a", label: "Ток", unit: "А" },
+      { key: "temp_c", label: "Температура", unit: "°C" }
+    ];
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+
+    function renderWorkshops(sites) {
+      const workshops = sites.filter(site => site.type === "workshop" && site.status === "active");
+      document.getElementById("workshops").innerHTML = workshops.map(site => {
+        const readings = Object.fromEntries((site.metrics || []).map(metric => [metric.metric, metric]));
+        const sensors = WORKSHOP_METRICS.map(({ key, label, unit }) => {
+          const reading = readings[key];
+          const value = reading ? `${reading.value} ${reading.unit || unit}` : "Нет данных";
+          return `<div class="sensor"><span class="sensor-label">${label}</span><span class="sensor-value${reading ? "" : " missing"}">${escapeHTML(value)}</span></div>`;
+        }).join("");
+        return `<article class="workshop-card"><h3>${escapeHTML(site.name)}</h3><div class="sensor-values">${sensors}</div></article>`;
+      }).join("") || '<p class="workshops-hint">Активные цехи пока не найдены</p>';
+    }
+
+    function htmlFor(site) {
+      if (!site) return '<span class="empty">—</span>';
+      const title = `<span class="site-name">${escapeHTML(SITE_LABELS[site.id] || site.name)}</span>`;
+      if (site.status === "reserved") return title + '<span class="empty">резерв</span>';
+      const map = Object.fromEntries((site.metrics || []).map(m => [m.metric, m]));
+      const rows = (SHOW[site.type] || []).map(k => map[k]).filter(Boolean);
+      if (!rows.length) return title + '<span class="empty">нет данных</span>';
+      return title + '<ul class="metrics">' + rows.map(m =>
+        `<li><span>${METRICS[m.metric] || escapeHTML(m.metric)}</span><b>${escapeHTML(`${m.value} ${m.unit || ""}`)}</b></li>`
+      ).join("") + "</ul>";
+    }
+
+    async function refresh() {
+      const meta = document.getElementById("meta");
+      try {
+        const res = await fetch("/ui/data");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        renderWorkshops(data.sites);
+        const byId = Object.fromEntries(data.sites.map(s => [s.id, s]));
+        document.querySelectorAll("[data-id]").forEach(el => {
+          el.innerHTML = htmlFor(byId[el.dataset.id]);
+        });
+        meta.textContent = "Онлайн · " + new Date(data.updated).toLocaleTimeString("ru-RU");
+      } catch (e) {
+        meta.innerHTML = '<span class="err">Нет связи: ' + e.message + "</span>";
+      }
+    }
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

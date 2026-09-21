@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ПТО оборудования — завод строительных материалов</title>
+  <style>
+    :root { font-family: Inter, Segoe UI, system-ui, sans-serif; color: #14283f; background: #f1f5f9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #16324f; color: white; padding: 20px max(20px, calc((100vw - 1180px)/2)); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    h1 { margin: 0; font-size: 22px; }
+    header small { color: #d2deea; }
+    main { max-width: 1180px; margin: auto; padding: 24px 18px 48px; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .tile, section { background: white; border: 1px solid #dbe3ec; border-radius: 10px; }
+    .tile { padding: 16px; }
+    .tile span { color: #566b80; font-size: 14px; }
+    .tile strong { display: block; font-size: 28px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+    section { padding: 18px; margin-top: 18px; }
+    h2 { font-size: 17px; margin: 0 0 14px; }
+    .tabs { display: flex; gap: 8px; padding: 0 18px; max-width: 1180px; margin: auto; background: #16324f; }
+    .tabs button { border: 0; border-bottom: 3px solid transparent; background: transparent; color: #d2deea; padding: 11px 12px; font: inherit; cursor: pointer; }
+    .tabs button[aria-selected="true"] { color: white; border-bottom-color: #78c4f0; }
+    .view-title { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+    .view-title p { color: #566b80; margin: -6px 0 14px; font-size: 13px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid #e5ebf1; font-size: 14px; }
+    th { color: #566b80; font-weight: 600; }
+    .status { font-weight: 600; }
+    .ok { color: #18794e; } .due_soon { color: #9a5a00; } .overdue { color: #b42318; } .unknown { color: #566b80; }
+    .empty { color: #566b80; padding: 12px 0; }
+    footer { color: #66798c; font-size: 13px; margin-top: 16px; }
+    @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } header { align-items: flex-start; flex-direction: column; } }
+    @media (max-width: 380px) { .summary { grid-template-columns: 1fr 1fr; gap: 8px; } .tile { padding: 12px; } .tile strong { font-size: 23px; } }
+  </style>
+</head>
+<body>
+  <header><h1>Обслуживание оборудования</h1><small id="updated" aria-live="polite">Загружаю данные…</small></header>
+  <nav class="tabs" role="tablist" aria-label="Разделы ПТО">
+    <button type="button" id="tab-overview" role="tab" aria-selected="true" aria-controls="view-overview">Сводка</button>
+    <button type="button" id="tab-database" role="tab" aria-selected="false" aria-controls="view-database">База и график ТО</button>
+  </nav>
+  <main>
+    <div id="view-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="summary" aria-label="Сводка по обслуживанию">
+        <div class="tile"><span>Единиц оборудования</span><strong id="equipment-count">—</strong></div>
+        <div class="tile"><span>Скоро ТО · до 30 дней</span><strong id="due-soon">—</strong></div>
+        <div class="tile"><span>Просрочено</span><strong id="overdue">—</strong></div>
+        <div class="tile"><span>Нет базовых данных</span><strong id="unknown">—</strong></div>
+      </div>
+      <section><h2>Ближайшие планы и сроки ТО</h2><div id="plans" class="table-wrap" aria-live="polite"></div></section>
+      <section><h2>Открытые заявки на работы</h2><div id="orders" class="table-wrap"></div></section>
+    </div>
+    <div id="view-database" role="tabpanel" aria-labelledby="tab-database" hidden>
+      <section>
+        <div class="view-title"><h2>Реестр оборудования</h2><p>Карточки оборудования, загруженные в базу ПТО</p></div>
+        <div id="equipment" class="table-wrap" aria-live="polite"></div>
+      </section>
+      <section>
+        <div class="view-title"><h2>График технического обслуживания</h2><p>Регламент, факт последнего ТО и расчёт следующего срока</p></div>
+        <div id="schedule" class="table-wrap" aria-live="polite"></div>
+        <footer>Если последнее ТО или показания наработки не внесены, срок не рассчитывается и отображается как «Нет базовых данных». Для цехов действует регламент раз в 6 месяцев, для трансформатора КТП — раз в 12 месяцев.</footer>
+      </section>
+    </div>
+    <footer>Сроки основаны на введённых регламентах. «Нет базовых данных» означает, что не указана дата последнего ТО или необходимое показание счётчика.</footer>
+  </main>
+  <script>
+    const statusNames = { ok: "В срок", due_soon: "Скоро ТО", overdue: "Просрочено", unknown: "Нет базовых данных" };
+    const equipmentTypes = { transformer: "Трансформатор", electric_motor: "Электродвигатель", pump: "Насос", compressor: "Компрессор" };
+    const siteNames = {
+      "workshop-dry-mix-1": "Производство сухих смесей 1",
+      "workshop-dry-mix-2": "Производство сухих смесей 2",
+      "workshop-emulsion": "Производство эмульсии",
+      "workshop-raw-prep": "Подготовка сырья",
+      "workshop-compressor": "Компрессорная",
+      "ktp-1": "КТП 10/0,4 кВ"
+    };
+    const siteLabel = id => siteNames[id] || id;
+    const safe = value => String(value ?? "—").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+    function renderPlans(items) {
+      if (!items.length) return '<p class="empty">Планы обслуживания пока не заведены.</p>';
+      return '<table><thead><tr><th>Площадка / оборудование</th><th>Регламент</th><th>Последнее ТО</th><th>До следующего</th><th>Состояние</th></tr></thead><tbody>' + items.map(item => {
+        const interval = [item.interval_months ? `${item.interval_months} мес.` : "", item.interval_hours ? `${item.interval_hours} ч` : ""].filter(Boolean).join(" / ") || "—";
+        const remaining = [item.remaining_days !== null ? `${item.remaining_days} дн.` : "", item.remaining_hours !== null ? `${item.remaining_hours} ч` : ""].filter(Boolean).join(" / ") || (item.next_service_date || "—");
+        return `<tr><td>${safe(item.equipment_name || item.site_id)}<br><small>${safe(item.title)}</small></td><td>${safe(interval)}</td><td>${safe(item.last_service_date)}</td><td>${safe(remaining)}</td><td class="status ${safe(item.status)}">${safe(statusNames[item.status] || item.status)}</td></tr>`;
+      }).join("") + '</tbody></table>';
+    }
+    function renderEquipment(items) {
+      if (!items.length) return '<p class="empty">В базе пока нет оборудования. Загрузите перечень из каталога завода.</p>';
+      return '<table><thead><tr><th>Наименование</th><th>Площадка</th><th>Тип</th><th>Модель</th><th>Мощность</th><th>Инвентарный №</th><th>Серийный №</th><th>Статус</th></tr></thead><tbody>' + items.map(item =>
+        `<tr><td>${safe(item.name)}</td><td>${safe(siteLabel(item.site_id))}</td><td>${safe(equipmentTypes[item.equipment_type] || item.equipment_type)}</td><td>${safe(item.model)}</td><td>${item.rated_power_kva ? `${safe(item.rated_power_kva)} кВА` : "—"}</td><td>${safe(item.inventory_number)}</td><td>${safe(item.serial_number)}</td><td>${safe(item.status === "active" ? "В работе" : item.status === "reserve" ? "Резерв" : item.status)}</td></tr>`
+      ).join("") + '</tbody></table>';
+    }
+    function renderSchedule(items) {
+      if (!items.length) return '<p class="empty">График ТО пока не загружен.</p>';
+      return '<table><thead><tr><th>Оборудование / площадка</th><th>Регламент</th><th>Последнее ТО</th><th>Следующее ТО</th><th>Осталось</th><th>Статус</th></tr></thead><tbody>' + items.map(item => {
+        const interval = [item.interval_months ? `${item.interval_months} мес.` : "", item.interval_hours ? `${item.interval_hours} ч` : ""].filter(Boolean).join(" / ") || "—";
+        const remaining = [item.remaining_days !== null ? `${item.remaining_days} дн.` : "", item.remaining_hours !== null ? `${item.remaining_hours} ч` : ""].filter(Boolean).join(" / ") || "—";
+        const subject = item.equipment_name || (item.scope === "site" ? siteLabel(item.site_id) : item.title) || item.site_id;
+        const scopeLabel = item.scope === "site" ? "всё оборудование площадки" : item.title;
+        return `<tr><td>${safe(subject)}<br><small>${safe(siteLabel(item.site_id))} · ${safe(scopeLabel)}</small></td><td>${safe(interval)}</td><td>${safe(item.last_service_date)}</td><td>${safe(item.next_service_date)}</td><td>${safe(remaining)}</td><td class="status ${safe(item.status)}">${safe(statusNames[item.status] || item.status)}</td></tr>`;
+      }).join("") + '</tbody></table>';
+    }
+    function renderOrders(items) {
+      if (!items.length) return '<p class="empty">Открытых заявок на обслуживание нет.</p>';
+      return '<table><thead><tr><th>Заявка</th><th>Площадка</th><th>Срок</th><th>Ответственный</th><th>Статус</th></tr></thead><tbody>' + items.map(item => `<tr><td>${safe(item.title)}</td><td>${safe(item.site_id)}</td><td>${safe(item.due_at)}</td><td>${safe(item.assignee)}</td><td>${safe(item.status === "planned" ? "Запланирована" : "В работе")}</td></tr>`).join("") + '</tbody></table>';
+    }
+    async function refresh() {
+      try {
+        const [dashboardResponse, equipmentResponse] = await Promise.all([fetch('/api/dashboard'), fetch('/api/equipment')]);
+        if (!dashboardResponse.ok || !equipmentResponse.ok) throw new Error(`HTTP ${dashboardResponse.status}/${equipmentResponse.status}`);
+        const [data, equipmentData] = await Promise.all([dashboardResponse.json(), equipmentResponse.json()]);
+        document.getElementById('equipment-count').textContent = data.equipment_count;
+        document.getElementById('due-soon').textContent = data.counts.due_soon;
+        document.getElementById('overdue').textContent = data.counts.overdue;
+        document.getElementById('unknown').textContent = data.counts.unknown;
+        document.getElementById('plans').innerHTML = renderPlans(data.plans);
+        document.getElementById('orders').innerHTML = renderOrders(data.open_work_orders);
+        document.getElementById('equipment').innerHTML = renderEquipment(equipmentData.items || []);
+        document.getElementById('schedule').innerHTML = renderSchedule(data.plans || []);
+        document.getElementById('updated').textContent = `Обновлено ${new Date(data.updated_at).toLocaleTimeString('ru-RU')}`;
+      } catch (error) { document.getElementById('updated').textContent = `Не удалось загрузить: ${error.message}`; }
+    }
+    document.querySelectorAll('[role="tab"]').forEach(tab => tab.addEventListener('click', () => {
+      document.querySelectorAll('[role="tab"]').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+      document.querySelectorAll('[role="tabpanel"]').forEach(panel => { panel.hidden = panel.id !== tab.getAttribute('aria-controls'); });
+    }));
+    refresh(); setInterval(refresh, 60000);
+  </script>
+</body>
+</html>

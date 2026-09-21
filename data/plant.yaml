@@ -1,0 +1,188 @@
+# Каталог завода — источник правды для всех сервисов.
+# Меняешь площадку здесь, а не в каждом микросервисе по отдельности.
+#
+# status:
+#   active   — объект в работе
+#   reserved — слот есть, телеметрия и заявки выключены
+
+factory:
+  id: construction-materials
+  name: Завод строительных материалов
+  description: >
+    Завод строительных материалов: сухие смеси и эмульсия.
+    Пет-проект: энергия, КТП, заявки на выпуск. Не SCADA.
+
+sites:
+  # --- Цехи в работе ---
+  - id: workshop-dry-mix-1
+    type: workshop
+    name: Производство сухих смесей 1
+    status: active
+    metrics_profile: workshop_power
+    maintenance:
+      interval_months: 6
+      scope: all_equipment
+
+  - id: workshop-dry-mix-2
+    type: workshop
+    name: Производство сухих смесей 2
+    status: active
+    metrics_profile: workshop_power
+    maintenance:
+      interval_months: 6
+      scope: all_equipment
+
+  - id: workshop-emulsion
+    type: workshop
+    name: Производство эмульсии
+    status: active
+    metrics_profile: workshop_power
+    maintenance:
+      interval_months: 6
+      scope: all_equipment
+
+  - id: workshop-raw-prep
+    type: workshop
+    name: Подготовка сырья
+    status: active
+    metrics_profile: workshop_power
+    maintenance:
+      interval_months: 6
+      scope: all_equipment
+
+  - id: workshop-compressor
+    type: workshop
+    name: Компрессорная
+    status: active
+    metrics_profile: workshop_power
+    maintenance:
+      interval_months: 6
+      scope: all_equipment
+
+  # --- Цехи в резерве: в каталоге есть, в процессе нет ---
+  - id: workshop-reserve-1
+    type: workshop
+    name: Резервный цех 1
+    status: reserved
+    metrics_profile: workshop_power
+
+  - id: workshop-reserve-2
+    type: workshop
+    name: Резервный цех 2
+    status: reserved
+    metrics_profile: workshop_power
+
+  # --- Котельные ---
+  - id: boiler-main
+    type: boiler
+    name: Котельная основная
+    status: active
+    metrics_profile: boiler_heat
+
+  - id: boiler-backup
+    type: boiler
+    name: Котельная резервная
+    status: active
+    metrics_profile: boiler_heat
+
+  # --- Склады ---
+  - id: warehouse-raw
+    type: warehouse
+    name: Склад сырья
+    status: active
+    metrics_profile: warehouse_climate
+
+  - id: warehouse-fg-1
+    type: warehouse
+    name: Склад готовой продукции 1
+    status: active
+    metrics_profile: warehouse_climate
+
+  - id: warehouse-fg-2
+    type: warehouse
+    name: Склад готовой продукции 2
+    status: active
+    metrics_profile: warehouse_climate
+
+  - id: warehouse-fuel
+    type: warehouse
+    name: Склад ГСМ
+    status: active
+    metrics_profile: warehouse_climate
+
+  # --- АБК: заявки заводятся здесь ---
+  - id: abk
+    type: abk
+    name: АБК
+    status: active
+    metrics_profile: abk_building
+
+  # --- КТП: одна комплектная трансформаторная подстанция 10/0.4 кВ ---
+  - id: ktp-1
+    type: ktp
+    name: КТП
+    status: active
+    metrics_profile: ktp_substation
+    electrical:
+      voltage_hv_kv: 10
+      voltage_lv_v: 400
+      rated_power_kva: 1000
+      feeds:
+        - workshop-dry-mix-1
+        - workshop-dry-mix-2
+        - workshop-emulsion
+        - workshop-raw-prep
+        - workshop-compressor
+        - boiler-main
+        - boiler-backup
+        - warehouse-raw
+        - warehouse-fg-1
+        - warehouse-fg-2
+        - warehouse-fuel
+        - abk
+      initial_state:
+        status: normal
+        breaker_hv: closed
+        breaker_lv: closed
+
+assets:
+  - id: transformer-ktp-1
+    site_id: ktp-1
+    type: transformer
+    name: Силовой трансформатор КТП-1
+    model: ТМГ33-1000/0,4
+    rated_power_kva: 1000
+    maintenance:
+      interval_months: 12
+      basis: calendar
+      last_service_date: null
+    inventory_number: null
+    serial_number: null
+
+production:
+  products:
+    - id: dry_mix
+      name: Сухая смесь
+      route:
+        - warehouse-raw
+        - workshop-raw-prep
+        - workshop-dry-mix-1   # альтернатива: workshop-dry-mix-2
+      finished_goods_warehouse: warehouse-fg-1
+      alt_workshops:
+        - workshop-dry-mix-2
+
+    - id: emulsion
+      name: Эмульсия
+      route:
+        - warehouse-raw
+        - workshop-raw-prep
+        - workshop-emulsion
+      finished_goods_warehouse: warehouse-fg-2
+      alt_workshops: []
+
+  order_statuses:
+    - created
+    - in_progress
+    - review
+    - closed
+    - rejected

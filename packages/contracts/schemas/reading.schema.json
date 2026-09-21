@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart-factory.local/schemas/reading.json",
+  "title": "TelemetryReading",
+  "description": "Одно показание датчика с площадки.",
+  "type": "object",
+  "required": ["site_id", "metric", "value", "ts"],
+  "properties": {
+    "site_id": { "type": "string" },
+    "metric": { "type": "string" },
+    "value": { "type": "number" },
+    "unit": { "type": "string" },
+    "ts": { "type": "string", "format": "date-time" }
+  }
+}

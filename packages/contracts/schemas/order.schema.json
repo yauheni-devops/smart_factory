@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart-factory.local/schemas/order.json",
+  "title": "ProductionOrder",
+  "description": "Заявка на выпуск продукции.",
+  "type": "object",
+  "required": ["id", "product_id", "qty_planned", "status"],
+  "properties": {
+    "id": { "type": "string" },
+    "product_id": { "type": "string", "enum": ["dry_mix", "emulsion"] },
+    "qty_planned": { "type": "number", "minimum": 0 },
+    "qty_actual": { "type": "number", "minimum": 0 },
+    "status": {
+      "type": "string",
+      "enum": ["created", "in_progress", "review", "closed", "rejected"]
+    },
+    "due_date": { "type": "string", "format": "date" }
+  }
+}

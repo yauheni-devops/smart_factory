@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10243b">
+  <title>Завод строительных материалов — главная</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #10243b;
+      --blue: #176b87;
+      --muted: #64758a;
+      --line: #dce5ed;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--navy);
+      background: #f2f6f9;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .page { min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      padding: 16px clamp(20px, 5vw, 76px);
+      color: #fff;
+      background: var(--navy);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      color: #ffd06a;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 10px;
+      background: rgba(255,255,255,.07);
+    }
+    .brand-name { font-size: 14px; font-weight: 650; letter-spacing: .02em; }
+    .header-caption { color: #b8c7d5; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+    main {
+      position: relative;
+      display: grid;
+      flex: 1;
+      place-items: center;
+      padding: 54px 22px 66px;
+      background:
+        radial-gradient(ellipse at 82% 24%, rgba(37, 147, 168, .12), transparent 32%),
+        linear-gradient(135deg, #f7fafc 0%, #eef3f7 58%, #e8f0f4 100%);
+    }
+    main::before, main::after {
+      position: absolute;
+      z-index: 0;
+      content: "";
+      pointer-events: none;
+    }
+    main::before {
+      top: 10%;
+      right: -110px;
+      width: min(38vw, 500px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(23,107,135,.12);
+      border-radius: 50%;
+      box-shadow: 0 0 0 42px rgba(23,107,135,.025), 0 0 0 84px rgba(23,107,135,.02);
+    }
+    main::after {
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 7px;
+      background: linear-gradient(90deg, #e8a832 0 22%, #176b87 22% 100%);
+      opacity: .82;
+    }
+    .content { position: relative; z-index: 1; width: min(100%, 940px); }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 20px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { width: 28px; height: 2px; content: ""; background: #e6a32a; }
+    h1 {
+      max-width: 790px;
+      margin: 0;
+      color: #10243b;
+      font-size: clamp(36px, 6vw, 66px);
+      font-weight: 720;
+      letter-spacing: -.045em;
+      line-height: 1.04;
+    }
+    .intro {
+      max-width: 610px;
+      margin: 22px 0 38px;
+      color: var(--muted);
+      font-size: clamp(16px, 2vw, 19px);
+      line-height: 1.65;
+    }
+    .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 700px; }
+    .action {
+      display: flex;
+      min-height: 116px;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      color: var(--navy);
+      text-decoration: none;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(16,36,59,.055);
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .action:hover, .action:focus-visible {
+      transform: translateY(-3px);
+      border-color: #8bb7c3;
+      box-shadow: 0 14px 30px rgba(16,36,59,.12);
+      outline: none;
+    }
+    .action-icon {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      flex: 0 0 54px;
+      place-items: center;
+      color: #176b87;
+      border-radius: 10px;
+      background: #eaf4f6;
+    }
+    .action.pto .action-icon { color: #9b6811; background: #fff5df; }
+    .action-copy { display: grid; gap: 5px; }
+    .action-title { font-size: 18px; font-weight: 720; }
+    .action-description { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .action-arrow { margin-left: auto; color: #8092a3; font-size: 23px; }
+    footer {
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px clamp(20px, 5vw, 76px);
+      color: #6d7c8d;
+      background: #fff;
+      border-top: 1px solid #e4eaf0;
+      font-size: 12px;
+    }
+    .footer-mark { color: #9b6811; }
+    @media (max-width: 620px) {
+      header { min-height: 68px; }
+      .header-caption { display: none; }
+      main { padding: 44px 20px 54px; }
+      .intro { margin: 18px 0 28px; }
+      .actions { grid-template-columns: 1fr; gap: 11px; }
+      .action { min-height: 98px; padding: 16px; }
+      footer { align-items: flex-start; flex-direction: column; justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M3 20V10.5L9 6v4l6-5v5l6-4v14H3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M7 20v-4h3v4m4 0v-5h4v5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">Завод строительных материалов</span>
+      </div>
+      <span class="header-caption">Производственная платформа</span>
+    </header>
+    <main>
+      <div class="content">
+        <p class="eyebrow">Цифровая система завода</p>
+        <h1>Всё управление производством — в одном месте</h1>
+        <p class="intro">Мониторинг оборудования, выпуск продукции, предупреждения и техническое обслуживание — в отдельных разделах системы.</p>
+        <nav class="actions" aria-label="Разделы системы">
+          <a class="action" href="/monitoring">
+            <span class="action-icon" aria-hidden="true">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
+                <path d="M3 19V5m0 14h18M6 15l4-4 3 2 5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="18" cy="6" r="1.5" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="action-copy">
+              <span class="action-title">Мониторинг</span>
+              <span class="action-description">Схема завода и данные датчиков</span>
+            </span>
+            <span class="action-arrow" aria-hidden="true">›</span>
+          </a>
+          <a class="action pto" id="pto-link" href="http://127.0.0.1:8086/ui">
+            <span class="action-icon" aria-hidden="true">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
+                <path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M14 3.5V8h4M8.5 12h7m-7 3.5h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="action-copy">
+              <span class="action-title">ПТО</span>
+              <span class="action-description">Оборудование и график обслуживания</span>
+            </span>
+            <span class="action-arrow" aria-hidden="true">›</span>
+          </a>
+          <a class="action production" href="/production">
+            <span class="action-icon" aria-hidden="true">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
+                <path d="M3.5 19.5h17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                <rect x="6" y="11" width="4" height="8" rx="1" fill="currentColor" opacity=".55"/>
+                <rect x="14" y="6" width="4" height="13" rx="1" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="action-copy">
+              <span class="action-title">Выпуск: план / факт</span>
+              <span class="action-description">Объём производства по заявкам</span>
+            </span>
+            <span class="action-arrow" aria-hidden="true">›</span>
+          </a>
+          <a class="action alerts" href="/alerts">
+            <span class="action-icon" aria-hidden="true">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3 21 19H3L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M12 9v4m0 3h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="action-copy">
+              <span class="action-title">Аварии и предупреждения</span>
+              <span class="action-description">Состояние связи и показаний датчиков</span>
+            </span>
+            <span class="action-arrow" aria-hidden="true">›</span>
+          </a>
+        </nav>
+      </div>
+    </main>
+    <footer>
+      <span>Система мониторинга и технического обслуживания</span>
+      <span><span class="footer-mark">●</span> Завод строительных материалов</span>
+    </footer>
+  </div>
+  <script>
+    document.getElementById("pto-link").href = `${window.location.protocol}//${window.location.hostname}:8086/ui`;
+  </script>
+</body>
+</html>

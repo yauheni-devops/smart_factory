@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart-factory.local/schemas/site.json",
+  "title": "Site",
+  "description": "Площадка завода: цех, котельная, склад, АБК или КТП.",
+  "type": "object",
+  "required": ["id", "type", "name", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "type": {
+      "type": "string",
+      "enum": ["workshop", "boiler", "warehouse", "abk", "ktp"]
+    },
+    "name": { "type": "string" },
+    "status": { "type": "string", "enum": ["active", "reserved"] },
+    "metrics_profile": { "type": "string" },
+    "maintenance": {
+      "type": "object",
+      "properties": {
+        "interval_months": { "type": "integer", "minimum": 1 },
+        "scope": { "type": "string" }
+      },
+      "required": ["interval_months", "scope"],
+      "additionalProperties": false
+    }
+  }
+}

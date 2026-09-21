@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10243b">
+  <title>Аварии и предупреждения — завод</title>
+  <style>
+    :root { --navy:#10243b; --blue:#176b87; --muted:#64758a; --line:#dce5ed; }
+    * { box-sizing:border-box; }
+    body { min-width:320px; min-height:100vh; margin:0; color:var(--navy); background:#f2f6f9; font-family:"Segoe UI",system-ui,sans-serif; }
+    .page { min-height:100vh; display:flex; flex-direction:column; }
+    header { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px clamp(20px,5vw,76px); color:#fff; background:var(--navy); }
+    .brand { display:flex; align-items:center; gap:12px; font-size:14px; font-weight:650; }
+    .brand-mark { display:grid; width:40px; height:40px; place-items:center; color:#ffd06a; border:1px solid #ffffff38; border-radius:10px; background:#ffffff12; }
+    .home-link { color:#d5e1ea; font-size:13px; text-decoration:none; }
+    .home-link:hover,.home-link:focus-visible { color:#fff; text-decoration:underline; }
+    main { flex:1; padding:38px 22px 60px; background:radial-gradient(ellipse at 90% 5%,#2493a811,transparent 34%),linear-gradient(135deg,#f7fafc,#eaf1f5); }
+    .content { width:min(100%,1000px); margin:0 auto; }
+    .eyebrow { margin:0 0 10px; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(32px,5vw,48px); letter-spacing:-.035em; }
+    .lead { max-width:760px; margin:12px 0 24px; color:var(--muted); font-size:16px; line-height:1.6; }
+    .status { display:inline-flex; align-items:center; gap:8px; padding:8px 11px; color:#52667a; background:#e9eff4; border-radius:99px; font-size:12px; font-weight:700; }
+    .status::before { width:8px; height:8px; content:""; background:#9aaabb; border-radius:50%; }
+    .status.ok { color:#16664f; background:#e6f5ef; }
+    .status.ok::before { background:#24a278; }
+    .status.warn { color:#946013; background:#fff3d8; }
+    .status.warn::before { background:#e5a32a; }
+    .status.error { color:#9c3434; background:#ffeded; }
+    .status.error::before { background:#d35454; }
+    .panel { margin-top:16px; padding:22px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 8px 24px #10243b0b; }
+    .panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    .panel-title { margin:0; color:#203b55; font-size:17px; }
+    .panel-note { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
+    .count { display:flex; align-items:baseline; gap:8px; margin:20px 0 0; color:#203b55; }
+    .count strong { font-size:40px; font-variant-numeric:tabular-nums; }
+    .count span { color:var(--muted); font-size:14px; }
+    .issue-list { display:grid; gap:9px; margin:18px 0 0; padding:0; list-style:none; }
+    .issue { display:grid; grid-template-columns:minmax(150px,.75fr) minmax(0,1.5fr); gap:12px; padding:14px; background:#fff8e8; border:1px solid #f0deb1; border-radius:8px; }
+    .issue-site { color:#5c4317; font-size:13px; font-weight:700; }
+    .issue-detail { color:#795a20; font-size:13px; line-height:1.45; }
+    .empty { margin-top:18px; padding:17px; color:#17664f; background:#edf8f3; border:1px solid #d0ebdf; border-radius:8px; font-size:14px; }
+    .notice { margin-top:16px; padding:15px 17px; color:#76561d; background:#fff6e3; border-left:4px solid #e4a62f; border-radius:6px; font-size:13px; line-height:1.55; }
+    .updated { margin:14px 2px 0; color:#8290a0; font-size:11px; }
+    footer { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px clamp(20px,5vw,76px); color:#6d7c8d; background:#fff; border-top:1px solid #e4eaf0; font-size:12px; }
+    footer .home-link { color:#6d7c8d; }
+    footer .home-link:hover,footer .home-link:focus-visible { color:#176b87; }
+    @media(max-width:600px) { header{min-height:66px}.brand{font-size:12px}.brand-mark{width:36px;height:36px}main{padding:30px 16px 42px}.panel{padding:16px}.issue{grid-template-columns:1fr;gap:5px}footer{align-items:flex-start;flex-direction:column;justify-content:center} }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">!</span><span>Завод строительных материалов</span></div>
+      <a class="home-link" href="/ui">← На главную</a>
+    </header>
+    <main>
+      <div class="content">
+        <p class="eyebrow">Состояние оборудования</p>
+        <h1>Аварии и предупреждения</h1>
+        <p class="lead">Здесь отображаются пропавшие или устаревшие показания датчиков активных объектов.</p>
+        <span class="status" id="status">Проверка связи</span>
+        <section class="panel" aria-labelledby="summary-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="summary-title">Состояние передачи данных</h2>
+              <p class="panel-note">Данные обновляются автоматически каждые 10 секунд.</p>
+            </div>
+          </div>
+          <p class="count"><strong id="count">—</strong><span id="count-label">объектов требуют внимания</span></p>
+          <div id="empty" class="empty" hidden></div>
+          <ul id="issues" class="issue-list" aria-live="polite"></ul>
+          <p id="updated" class="updated"></p>
+        </section>
+        <aside class="notice"><strong>Важно:</strong> сейчас проверяется только наличие и свежесть телеметрии. Аварийные пороги оборудования не настроены, поэтому технологические отклонения эта страница пока не оценивает.</aside>
+      </div>
+    </main>
+    <footer><span>Система мониторинга и технического обслуживания</span><a class="home-link" href="/ui">Завод строительных материалов</a></footer>
+  </div>
+  <script>
+    const expectedMetrics = {
+      workshop: ["power_kw", "voltage_v", "current_a", "temp_c"],
+      boiler: ["heat_mw", "temp_supply_c", "temp_return_c", "pressure_bar"],
+      warehouse: ["lighting_kw", "temp_c"],
+      abk: ["lighting_kw", "temp_c"],
+      ktp: ["voltage_lv_v", "current_a", "power_kw", "oil_temp_c"]
+    };
+    const metricNames = {
+      power_kw:"мощность", voltage_v:"напряжение", voltage_lv_v:"напряжение НН", current_a:"ток",
+      temp_c:"температура", temp_supply_c:"температура подачи", temp_return_c:"температура обратки",
+      pressure_bar:"давление", heat_mw:"тепловая мощность", lighting_kw:"освещение", oil_temp_c:"температура масла"
+    };
+    const maxAgeMs = 30000;
+    const status = document.getElementById("status");
+
+    function setStatus(label, tone) {
+      status.textContent = label;
+      status.className = `status${tone ? ` ${tone}` : ""}`;
+    }
+
+    function render(data) {
+      const issues = [];
+      const now = Date.now();
+      data.sites.filter(site => site.status === "active").forEach(site => {
+        const readings = Object.fromEntries((site.metrics || []).map(reading => [reading.metric, reading]));
+        const missing = [];
+        const stale = [];
+        (expectedMetrics[site.type] || []).forEach(metric => {
+          const reading = readings[metric];
+          if (!reading || !reading.ts) missing.push(metricNames[metric] || metric);
+          else {
+            const age = now - Date.parse(reading.ts);
+            if (!Number.isFinite(age) || age > maxAgeMs) stale.push(metricNames[metric] || metric);
+          }
+        });
+        if (missing.length) issues.push({ site:site.name, detail:`Нет показаний: ${missing.join(", ")}` });
+        else if (stale.length) issues.push({ site:site.name, detail:`Нет обновлений более 30 секунд: ${stale.join(", ")}` });
+      });
+
+      document.getElementById("count").textContent = String(issues.length);
+      document.getElementById("count-label").textContent = issues.length ? "объектов требуют внимания" : "проблем связи не обнаружено";
+      setStatus(issues.length ? "Нужна проверка" : "Связь стабильна", issues.length ? "warn" : "ok");
+      const list = document.getElementById("issues");
+      list.replaceChildren();
+      issues.forEach(issue => {
+        const item = document.createElement("li");
+        item.className = "issue";
+        const site = document.createElement("span");
+        site.className = "issue-site";
+        site.textContent = issue.site;
+        const detail = document.createElement("span");
+        detail.className = "issue-detail";
+        detail.textContent = issue.detail;
+        item.append(site, detail);
+        list.append(item);
+      });
+      const empty = document.getElementById("empty");
+      empty.hidden = issues.length > 0;
+      empty.textContent = "Проблем с поступлением данных от активных объектов сейчас не обнаружено.";
+      document.getElementById("updated").textContent = `Проверено: ${new Date(data.updated || Date.now()).toLocaleTimeString("ru-RU")}`;
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch("/ui/data");
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        render(await response.json());
+      } catch (_error) {
+        document.getElementById("count").textContent = "—";
+        document.getElementById("count-label").textContent = "не удалось проверить телеметрию";
+        document.getElementById("issues").replaceChildren();
+        document.getElementById("empty").hidden = false;
+        document.getElementById("empty").textContent = "Нет связи с сервисом телеметрии. Состояние датчиков неизвестно.";
+        setStatus("Сервис недоступен", "error");
+      }
+    }
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>

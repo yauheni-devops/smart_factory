@@ -1,0 +1,92 @@
+{
+  "id": null,
+  "uid": "factory-overview",
+  "title": "Завод — общий мониторинг",
+  "tags": ["factory", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Доступность API-сервисов", "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "up{job=\"factory-apis\"}", "legendFormat": "{{service}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Запросы в секунду", "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "sum by (service, handler) (rate(http_requests_total{job=\"factory-apis\", handler!~\"/metrics|none\"}[5m]))", "legendFormat": "{{service}} {{handler}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Датчики: мощность, кВт", "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_sensor_latest_value{metric=\"power_kw\"}", "legendFormat": "{{site_id}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "kw" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Датчики: температура, °C", "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_sensor_latest_value{metric=~\"temp_c|oil_temp_c\"}", "legendFormat": "{{site_id}} · {{metric}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "celsius" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 5, "type": "stat", "title": "Планы ТО по состоянию", "gridPos": { "x": 0, "y": 16, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_maintenance_plans", "legendFormat": "{{status}}", "refId": "A", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "value_and_name", "wideLayout": true }
+    },
+    {
+      "id": 6, "type": "stat", "title": "Открытые заявки на обслуживание", "gridPos": { "x": 12, "y": 16, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_maintenance_open_work_orders", "legendFormat": "Открытые работы", "refId": "A", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 5 }] } }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Ошибки API 5xx в секунду", "gridPos": { "x": 0, "y": 23, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "sum by (service) (rate(http_requests_total{job=\"factory-apis\", status=\"5xx\"}[5m]))", "legendFormat": "{{service}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Задержка API p95", "gridPos": { "x": 8, "y": 23, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket{job=\"factory-apis\"}[5m])))", "legendFormat": "{{service}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Выполнение производственных заявок", "gridPos": { "x": 16, "y": 23, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_production_orders", "legendFormat": "{{status}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "КТП: напряжение, В", "gridPos": { "x": 0, "y": 31, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_sensor_latest_value{site_id=\"ktp-1\", metric=\"voltage_lv_v\"}", "legendFormat": "{{site_id}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "volt" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "КТП: ток, А", "gridPos": { "x": 12, "y": 31, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_sensor_latest_value{site_id=\"ktp-1\", metric=\"current_a\"}", "legendFormat": "{{site_id}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "amp" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    }
+  ],
+  "annotations": { "list": [] },
+  "links": []
+}

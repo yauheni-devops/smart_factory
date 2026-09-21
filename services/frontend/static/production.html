@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10243b">
+  <title>Выпуск: план / факт — завод</title>
+  <style>
+    :root { --navy:#10243b; --blue:#176b87; --muted:#64758a; --line:#dce5ed; }
+    * { box-sizing:border-box; }
+    body { min-width:320px; min-height:100vh; margin:0; color:var(--navy); background:#f2f6f9; font-family:"Segoe UI",system-ui,sans-serif; }
+    .page { min-height:100vh; display:flex; flex-direction:column; }
+    header { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px clamp(20px,5vw,76px); color:#fff; background:var(--navy); }
+    .brand { display:flex; align-items:center; gap:12px; font-size:14px; font-weight:650; }
+    .brand-mark { display:grid; width:40px; height:40px; place-items:center; color:#ffd06a; border:1px solid #ffffff38; border-radius:10px; background:#ffffff12; }
+    .home-link { color:#d5e1ea; font-size:13px; text-decoration:none; }
+    .home-link:hover,.home-link:focus-visible { color:#fff; text-decoration:underline; }
+    main { flex:1; padding:38px 22px 60px; background:radial-gradient(ellipse at 90% 5%,#2493a811,transparent 34%),linear-gradient(135deg,#f7fafc,#eaf1f5); }
+    .content { width:min(100%,1000px); margin:0 auto; }
+    .eyebrow { margin:0 0 10px; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(32px,5vw,48px); letter-spacing:-.035em; }
+    .lead { max-width:690px; margin:12px 0 28px; color:var(--muted); font-size:16px; line-height:1.6; }
+    .status { display:inline-flex; align-items:center; gap:8px; padding:8px 11px; color:#52667a; background:#e9eff4; border-radius:99px; font-size:12px; font-weight:700; }
+    .status::before { width:8px; height:8px; content:""; background:#9aaabb; border-radius:50%; }
+    .status.ok { color:#16664f; background:#e6f5ef; }
+    .status.ok::before { background:#24a278; }
+    .status.warn { color:#946013; background:#fff3d8; }
+    .status.warn::before { background:#e5a32a; }
+    .status.error { color:#9c3434; background:#ffeded; }
+    .status.error::before { background:#d35454; }
+    .panel { margin-top:16px; padding:22px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 8px 24px #10243b0b; }
+    .panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    .panel-title { margin:0; color:#203b55; font-size:17px; }
+    .panel-note { margin:5px 0 0; color:var(--muted); font-size:12px; }
+    .totals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px; }
+    .total { padding:16px; background:#f2f6f9; border-radius:9px; }
+    .total-label { display:block; color:var(--muted); font-size:13px; }
+    .total-value { display:block; margin-top:5px; color:#142d45; font-size:clamp(26px,4vw,36px); font-weight:730; font-variant-numeric:tabular-nums; }
+    .progress-meta { display:flex; justify-content:space-between; gap:12px; margin-top:20px; color:#53677a; font-size:13px; }
+    .progress-track { height:9px; margin-top:8px; overflow:hidden; background:#e6edf2; border-radius:99px; }
+    .progress-fill { width:0; height:100%; background:linear-gradient(90deg,#176b87,#35a18b); transition:width .25s ease; }
+    .empty { margin-top:16px; padding:16px; color:#637387; background:#f5f8fa; border:1px dashed #cbd6df; border-radius:8px; font-size:14px; line-height:1.55; }
+    table { width:100%; margin-top:18px; border-collapse:collapse; text-align:left; }
+    th,td { padding:12px 10px; border-bottom:1px solid #e8edf1; font-size:13px; }
+    th { color:#6a7b8d; font-size:11px; font-weight:650; text-transform:uppercase; }
+    td.number { text-align:right; font-variant-numeric:tabular-nums; }
+    footer { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px clamp(20px,5vw,76px); color:#6d7c8d; background:#fff; border-top:1px solid #e4eaf0; font-size:12px; }
+    footer .home-link { color:#6d7c8d; }
+    footer .home-link:hover,footer .home-link:focus-visible { color:#176b87; }
+    @media(max-width:600px) { header{min-height:66px}.brand{font-size:12px}.brand-mark{width:36px;height:36px}main{padding:30px 16px 42px}.panel{padding:16px}.totals{gap:8px}.total{padding:12px}.panel-head{flex-direction:column}footer{align-items:flex-start;flex-direction:column;justify-content:center} }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">▥</span><span>Завод строительных материалов</span></div>
+      <a class="home-link" href="/ui">← На главную</a>
+    </header>
+    <main>
+      <div class="content">
+        <p class="eyebrow">Производство</p>
+        <h1>Выпуск: план / факт</h1>
+        <p class="lead">Сводка по активным заявкам на выпуск. Значения поступают из сервиса учёта производства.</p>
+        <span class="status" id="status">Загрузка данных</span>
+        <section class="panel" aria-labelledby="summary-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="summary-title">Выполнение плана</h2>
+              <p class="panel-note" id="order-count">Подключаем сервис…</p>
+            </div>
+            <span id="percent-label">—</span>
+          </div>
+          <div class="totals">
+            <div class="total"><span class="total-label">План</span><strong class="total-value" id="planned">—</strong></div>
+            <div class="total"><span class="total-label">Факт</span><strong class="total-value" id="actual">—</strong></div>
+          </div>
+          <div class="progress-meta"><span>Выполнение</span><strong id="progress-text">—</strong></div>
+          <div class="progress-track" role="progressbar" aria-label="Выполнение плана" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progress"></div></div>
+          <div class="empty" id="message" aria-live="polite">Загружаем заявки…</div>
+        </section>
+        <section class="panel" aria-labelledby="products-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="products-title">По продукции</h2>
+              <p class="panel-note">Разбивка по активным заявкам</p>
+            </div>
+          </div>
+          <div id="product-table"></div>
+        </section>
+      </div>
+    </main>
+    <footer><span>Система мониторинга и технического обслуживания</span><a class="home-link" href="/ui">Завод строительных материалов</a></footer>
+  </div>
+  <script>
+    const number = value => Number(value).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+    const status = document.getElementById("status");
+    const message = document.getElementById("message");
+    const planned = document.getElementById("planned");
+    const actual = document.getElementById("actual");
+    const progress = document.getElementById("progress");
+
+    function setStatus(label, tone) {
+      status.textContent = label;
+      status.className = `status${tone ? ` ${tone}` : ""}`;
+    }
+
+    function showTable(items) {
+      const target = document.getElementById("product-table");
+      if (!items.length) {
+        target.innerHTML = '<p class="panel-note">Пока нет данных для разбивки.</p>';
+        return;
+      }
+      target.innerHTML = '<table><thead><tr><th>Продукция</th><th>Заявок</th><th>План</th><th>Факт</th></tr></thead><tbody>' +
+        items.map(item => `<tr><td>${escapeHtml(item.product_name)}</td><td class="number">${number(item.orders)}</td><td class="number">${number(item.planned)}</td><td class="number">${number(item.actual)}</td></tr>`).join("") +
+        '</tbody></table>';
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[char]);
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch("/ui/production");
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data.available) {
+          planned.textContent = actual.textContent = "—";
+          progress.style.width = "0";
+          document.querySelector(".progress-track").setAttribute("aria-valuenow", "0");
+          setStatus("Сервис недоступен", "error");
+          message.textContent = "Не удалось получить план и факт. Проверьте сервис учёта производства.";
+          document.getElementById("order-count").textContent = "Нет связи с источником данных";
+          document.getElementById("percent-label").textContent = "—";
+          document.getElementById("progress-text").textContent = "—";
+          showTable([]);
+          return;
+        }
+        if (!data.active_orders) {
+          planned.textContent = actual.textContent = "—";
+          setStatus("Нет активных заявок", "warn");
+          message.textContent = "В сервисе учёта пока нет активных заявок. Показатели появятся после их регистрации.";
+          document.getElementById("order-count").textContent = "Активных заявок: 0";
+          document.getElementById("percent-label").textContent = "—";
+          document.getElementById("progress-text").textContent = "Нет данных";
+          progress.style.width = "0";
+          document.querySelector(".progress-track").setAttribute("aria-valuenow", "0");
+          showTable([]);
+          return;
+        }
+        planned.textContent = number(data.planned);
+        actual.textContent = number(data.actual);
+        const percent = Number(data.completion_percent || 0);
+        const capped = Math.max(0, Math.min(100, percent));
+        progress.style.width = `${capped}%`;
+        document.querySelector(".progress-track").setAttribute("aria-valuenow", String(capped));
+        document.getElementById("percent-label").textContent = `${number(percent)}%`;
+        document.getElementById("progress-text").textContent = `${number(percent)}%`;
+        document.getElementById("order-count").textContent = `Активных заявок: ${data.active_orders}`;
+        setStatus("Данные обновлены", "ok");
+        message.textContent = "Суммы показаны в тех единицах, которые указаны в заявках на выпуск.";
+        showTable(data.products || []);
+      } catch (_error) {
+        planned.textContent = actual.textContent = "—";
+        progress.style.width = "0";
+        document.querySelector(".progress-track").setAttribute("aria-valuenow", "0");
+        document.getElementById("percent-label").textContent = "—";
+        document.getElementById("progress-text").textContent = "—";
+        setStatus("Нет связи", "error");
+        message.textContent = "Не удалось загрузить данные выпуска.";
+        document.getElementById("order-count").textContent = "Источник данных недоступен";
+        showTable([]);
+      }
+    }
+    refresh();
+    setInterval(refresh, 15000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "id": null,
+  "uid": "factory-maintenance",
+  "title": "Завод — ПТО и оборудование",
+  "tags": ["factory", "maintenance"],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Планы по статусу", "gridPos": { "x": 0, "y": 0, "w": 24, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_maintenance_plans", "legendFormat": "{{status}}", "refId": "A", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "value_and_name", "wideLayout": true }
+    },
+    {
+      "id": 2, "type": "bargauge", "title": "Дней до ТО по календарному графику", "gridPos": { "x": 0, "y": 6, "w": 12, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_maintenance_plan_days_remaining", "legendFormat": "{{site_id}}", "refId": "A", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "d", "min": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 1 }, { "color": "green", "value": 31 }] } }, "overrides": [] },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true, "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } }
+    },
+    {
+      "id": 3, "type": "bargauge", "title": "Моточасы до ТО", "gridPos": { "x": 12, "y": 6, "w": 12, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_maintenance_plan_hours_remaining", "legendFormat": "{{site_id}}", "refId": "A", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "h", "min": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 1 }, { "color": "green", "value": 101 }] } }, "overrides": [] },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true, "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Наработка оборудования, ч", "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_equipment_meter_hours", "legendFormat": "{{site_id}} · {{equipment_id}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "h" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } }
+    },
+    {
+      "id": 5, "type": "stat", "title": "Открытые заявки на ТО/ремонт", "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-main" },
+      "targets": [{ "expr": "factory_maintenance_open_work_orders", "legendFormat": "Открытые заявки", "refId": "A", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 5 }] } }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true }
+    }
+  ],
+  "annotations": { "list": [] },
+  "links": []
+}

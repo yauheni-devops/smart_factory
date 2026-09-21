@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart-factory.local/schemas/ktp-state.json",
+  "title": "KtpState",
+  "description": "Текущее состояние КТП. Не команда на отключение, а снимок.",
+  "type": "object",
+  "required": ["site_id", "status", "breaker_hv", "breaker_lv", "ts"],
+  "properties": {
+    "site_id": { "type": "string", "pattern": "^ktp-" },
+    "status": {
+      "type": "string",
+      "enum": ["normal", "warning", "alarm", "offline"]
+    },
+    "breaker_hv": { "type": "string", "enum": ["closed", "open"] },
+    "breaker_lv": { "type": "string", "enum": ["closed", "open"] },
+    "oil_temp_c": { "type": "number" },
+    "voltage_lv_v": { "type": "number" },
+    "current_a": { "type": "number" },
+    "power_kw": { "type": "number" },
+    "ts": { "type": "string", "format": "date-time" }
+  }
+}

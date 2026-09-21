@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart-factory.local/schemas/equipment.json",
+  "title": "EquipmentAsset",
+  "description": "Единица оборудования, установленная на площадке завода.",
+  "type": "object",
+  "required": ["id", "site_id", "type", "name", "maintenance"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "site_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "type": { "type": "string" },
+    "name": { "type": "string" },
+    "model": { "type": ["string", "null"] },
+    "rated_power_kva": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "inventory_number": { "type": ["string", "null"] },
+    "serial_number": { "type": ["string", "null"] },
+    "maintenance": {
+      "type": "object",
+      "required": ["interval_months", "basis", "last_service_date"],
+      "properties": {
+        "interval_months": { "type": "integer", "minimum": 1 },
+        "basis": { "type": "string", "enum": ["calendar", "operating_hours", "calendar_or_hours"] },
+        "last_service_date": { "type": ["string", "null"], "format": "date" },
+        "interval_hours": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "last_service_meter": { "type": ["number", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
