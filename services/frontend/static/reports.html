@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d2e">
+  <title>Отчёты — CEMEZIT</title>
+  <link rel="stylesheet" href="/assets/sections.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/ui">CEMEZIT</a>
+    <nav aria-label="Навигация"><a href="/ui">На главную</a><a href="/monitoring">Мониторинг</a><a href="/documents">Документы</a></nav>
+  </header>
+  <main>
+    <p class="eyebrow">Сводка по заводу</p>
+    <h1>Отчёты</h1>
+    <p class="lead">Последние полученные показания по цехам и объектам. Сводку можно обновить и скачать в CSV для открытия в Excel.</p>
+    <div class="grid" aria-label="Сводные показатели">
+      <section class="panel"><p class="stat-label">Объектов с показаниями</p><div class="stat-value" id="site-count">—</div></section>
+      <section class="panel"><p class="stat-label">Показаний в сводке</p><div class="stat-value" id="reading-count">—</div></section>
+      <section class="panel"><p class="stat-label">Показаний старше 30 секунд</p><div class="stat-value" id="stale-count">—</div></section>
+    </div>
+    <div class="toolbar">
+      <button class="button" id="refresh-button" type="button">Обновить сводку</button>
+      <button class="button secondary" id="export-button" type="button" disabled>Скачать CSV</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite">Загрузка показаний…</p>
+    <div class="table-wrap">
+      <table>
+        <caption class="note">Последние показания датчиков · время по Москве (МСК)</caption>
+        <thead><tr><th scope="col">Цех / объект</th><th scope="col">Параметр</th><th scope="col">Значение</th><th scope="col">Последнее показание</th></tr></thead>
+        <tbody id="readings-body"><tr><td colspan="4">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note">Это снимок последних полученных данных, а не история за период. Возраст показаний отображает свежесть связи, а не наличие аварии оборудования. Источник данных — подключённая телеметрия; в учебном окружении показания формирует симулятор.</p>
+  </main>
+  <footer>CEMEZIT · Производственная платформа</footer>
+  <script>
+    const metricNames = {
+      power_kw: "Мощность", lighting_kw: "Освещение",
+      voltage_lv_v: "Напряжение", voltage_v: "Напряжение",
+      current_a: "Ток", temp_c: "Температура", oil_temp_c: "Температура масла",
+      heat_mw: "Тепловая мощность", pressure_bar: "Давление"
+    };
+    const dateFormat = new Intl.DateTimeFormat("ru-RU", {
+      dateStyle: "short", timeStyle: "medium", timeZone: "Europe/Moscow"
+    });
+    const numberFormat = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 3 });
+    const refreshButton = document.getElementById("refresh-button");
+    const exportButton = document.getElementById("export-button");
+    const body = document.getElementById("readings-body");
+    const status = document.getElementById("status");
+    let snapshot = null;
+    function formatTime(value) {
+      const date = new Date(value || "");
+      return Number.isNaN(date.getTime()) ? "Нет времени" : dateFormat.format(date);
+    }
+    function setEmpty(message) {
+      body.replaceChildren();
+      const row = body.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 4;
+      cell.textContent = message;
+    }
+    async function loadReport() {
+      refreshButton.disabled = true;
+      exportButton.disabled = true;
+      snapshot = null;
+      status.classList.remove("error");
+      status.textContent = "Загрузка показаний…";
+      setEmpty("Загрузка…");
+      for (const id of ["site-count", "reading-count", "stale-count"]) document.getElementById(id).textContent = "—";
+      try {
+        const response = await fetch("/ui/data", { credentials: "same-origin", cache: "no-store" });
+        if (response.status === 401) throw new Error("Сессия завершена. Вернитесь на главную и войдите в систему.");
+        if (!response.ok) throw new Error("Не удалось получить показания. Проверьте работу сервисов и повторите обновление.");
+        const data = await response.json();
+        if (!Array.isArray(data.sites)) throw new Error("Сервис вернул некорректную сводку.");
+        const rows = data.sites.flatMap(site => (site.metrics || []).map(metric => ({
+          site: site.name || site.id, siteId: site.id,
+          metric: metricNames[metric.metric] || metric.metric,
+          value: metric.value, unit: metric.unit || "", ts: metric.ts
+        })));
+        const now = Date.now();
+        const stale = rows.filter(row => {
+          const time = new Date(row.ts || "").getTime();
+          return !Number.isFinite(time) || now - time > 30000;
+        }).length;
+        document.getElementById("site-count").textContent = data.sites.filter(site => site.metrics?.length).length;
+        document.getElementById("reading-count").textContent = rows.length;
+        document.getElementById("stale-count").textContent = stale;
+        status.textContent = `Сводка сформирована: ${formatTime(data.updated)} МСК. Для новых показаний нажмите «Обновить сводку».`;
+        body.replaceChildren();
+        if (!rows.length) {
+          setEmpty("Показаний пока нет. Проверьте подключение датчиков или симулятора.");
+          return;
+        }
+        for (const item of rows) {
+          const row = body.insertRow();
+          const value = typeof item.value === "number" ? numberFormat.format(item.value) : "—";
+          for (const text of [item.site, item.metric, `${value} ${item.unit}`.trim(), formatTime(item.ts)]) {
+            row.insertCell().textContent = text;
+          }
+          row.cells[2].className = "value";
+        }
+        snapshot = { updated: data.updated, rows };
+        exportButton.disabled = false;
+      } catch (error) {
+        status.classList.add("error");
+        status.textContent = error.message;
+        setEmpty("Сводка недоступна.");
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+    function csvText(value) {
+      let text = String(value ?? "");
+      if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+      return '"' + text.replaceAll('"', '""') + '"';
+    }
+    function exportReport() {
+      if (!snapshot) return;
+      const header = ["Сводка сформирована (МСК)", "Цех / объект", "Код объекта", "Параметр", "Значение", "Единица", "Последнее показание (МСК)"].map(csvText).join(";");
+      const lines = snapshot.rows.map(row => [
+        csvText(formatTime(snapshot.updated)), csvText(row.site), csvText(row.siteId), csvText(row.metric),
+        typeof row.value === "number" && Number.isFinite(row.value) ? String(row.value).replace(".", ",") : "",
+        csvText(row.unit), csvText(formatTime(row.ts))
+      ].join(";"));
+      const blob = new Blob(["\uFEFF", [header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `cemezit-sensors-${new Date().toISOString().replace(/[:.]/g, "-")}.csv`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    refreshButton.addEventListener("click", loadReport);
+    exportButton.addEventListener("click", exportReport);
+    loadReport();
+  </script>
+</body>
+</html>

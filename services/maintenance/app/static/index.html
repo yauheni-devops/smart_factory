@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ПТО оборудования — завод строительных материалов</title>
+  <title>Планово-техническое обслуживание оборудования — завод строительных материалов</title>
   <style>
     :root { font-family: Inter, Segoe UI, system-ui, sans-serif; color: #14283f; background: #f1f5f9; }
     * { box-sizing: border-box; }
@@ -11,6 +11,10 @@
     header { background: #16324f; color: white; padding: 20px max(20px, calc((100vw - 1180px)/2)); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
     h1 { margin: 0; font-size: 22px; }
     header small { color: #d2deea; }
+    .header-tools { display: flex; align-items: center; gap: 16px; }
+    .home-link { color: #fff; text-decoration: none; font-size: 14px; }
+    .home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+    .logout { padding: 7px 11px; border: 1px solid #ffffff66; border-radius: 7px; color: #fff; background: transparent; cursor: pointer; font: inherit; }
     main { max-width: 1180px; margin: auto; padding: 24px 18px 48px; }
     .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
     .tile, section { background: white; border: 1px solid #dbe3ec; border-radius: 10px; }
@@ -37,8 +41,8 @@
   </style>
 </head>
 <body>
-  <header><h1>Обслуживание оборудования</h1><small id="updated" aria-live="polite">Загружаю данные…</small></header>
-  <nav class="tabs" role="tablist" aria-label="Разделы ПТО">
+  <header><h1>Обслуживание оборудования</h1><div class="header-tools"><small id="updated" aria-live="polite">Загружаю данные…</small><a class="home-link" id="home-link" href="http://127.0.0.1:8082/ui">На главную</a><button type="button" class="logout" id="logout">Выйти</button></div></header>
+  <nav class="tabs" role="tablist" aria-label="Планово-техническое обслуживание">
     <button type="button" id="tab-overview" role="tab" aria-selected="true" aria-controls="view-overview">Сводка</button>
     <button type="button" id="tab-database" role="tab" aria-selected="false" aria-controls="view-database">База и график ТО</button>
   </nav>
@@ -55,7 +59,7 @@
     </div>
     <div id="view-database" role="tabpanel" aria-labelledby="tab-database" hidden>
       <section>
-        <div class="view-title"><h2>Реестр оборудования</h2><p>Карточки оборудования, загруженные в базу ПТО</p></div>
+        <div class="view-title"><h2>Реестр оборудования</h2><p>Карточки оборудования, загруженные в базу планово-технического обслуживания</p></div>
         <div id="equipment" class="table-wrap" aria-live="polite"></div>
       </section>
       <section>
@@ -123,6 +127,11 @@
         document.getElementById('updated').textContent = `Обновлено ${new Date(data.updated_at).toLocaleTimeString('ru-RU')}`;
       } catch (error) { document.getElementById('updated').textContent = `Не удалось загрузить: ${error.message}`; }
     }
+    document.getElementById('logout').addEventListener('click', async () => {
+      await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+      window.location.replace('/login');
+    });
+    document.getElementById('home-link').href = `${window.location.protocol}//${window.location.hostname}:8082/ui`;
     document.querySelectorAll('[role="tab"]').forEach(tab => tab.addEventListener('click', () => {
       document.querySelectorAll('[role="tab"]').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
       document.querySelectorAll('[role="tabpanel"]').forEach(panel => { panel.hidden = panel.id !== tab.getAttribute('aria-controls'); });

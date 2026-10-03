@@ -8,8 +8,8 @@ import os
 
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 import httpx
 from pydantic import BaseModel
 from prometheus_client import Gauge
@@ -29,6 +29,49 @@ sensor_latest_value = Gauge(
     ("site_id", "metric", "unit"),
 )
 PRODUCTION_URL = os.environ.get("PRODUCTION_URL", "http://127.0.0.1:8083").rstrip("/")
+MAINTENANCE_AUTH_URL = os.environ.get("MAINTENANCE_AUTH_URL", "http://127.0.0.1:8086").rstrip("/")
+AUTH_COOKIE = "pto_session"
+PROTECTED_PAGES = {"/ui", "/monitoring", "/production", "/alerts", "/documents", "/reports"}
+
+
+@app.middleware("http")
+async def protect_visitor_pages(request: Request, call_next):
+    path = request.url.path
+    protected = request.method == "GET" and (
+        path in PROTECTED_PAGES or path.startswith("/ui/")
+        or path.startswith("/assets/")
+        or path == "/readings" or path.startswith("/readings/")
+    )
+    if not protected:
+        return await call_next(request)
+
+    cookie = request.cookies.get(AUTH_COOKIE)
+    authenticated = False
+    if cookie:
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                auth_response = await client.get(
+                    f"{MAINTENANCE_AUTH_URL}/session",
+                    headers={"Cookie": f"{AUTH_COOKIE}={cookie}"},
+                )
+            authenticated = auth_response.status_code == 204
+        except httpx.HTTPError:
+            return JSONResponse(status_code=503, content={"detail": "Сервис входа недоступен"})
+
+    if not authenticated:
+        if path in PROTECTED_PAGES:
+            host = request.url.hostname
+            if host not in {"localhost", "127.0.0.1"}:
+                host = "localhost"
+            return RedirectResponse(
+                url=f"{request.url.scheme}://{host}:8086/login?next=home",
+                status_code=303,
+            )
+        return JSONResponse(status_code=401, content={"detail": "Требуется вход в систему"})
+
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 class ReadingIn(BaseModel):
@@ -88,6 +131,13 @@ LANDING_FILE = STATIC_DIR / "landing.html"
 MONITORING_FILE = STATIC_DIR / "index.html"
 PRODUCTION_PAGE = STATIC_DIR / "production.html"
 ALERTS_PAGE = STATIC_DIR / "alerts.html"
+DOCUMENTS_PAGE = STATIC_DIR / "documents.html"
+REPORTS_PAGE = STATIC_DIR / "reports.html"
+SECTIONS_CSS = STATIC_DIR / "assets" / "sections.css"
+HERO_IMAGE = STATIC_DIR / "assets" / "factory-hero.png"
+HORSE_IMAGE = STATIC_DIR / "assets" / "cemezit-horse.webp"
+BRAND_LOGO = STATIC_DIR / "assets" / "specprofstroy-logo.png"
+MONITORING_BACKGROUND = STATIC_DIR / "assets" / "monitoring-background.jpg"
 
 
 @app.get("/")
@@ -98,6 +148,26 @@ def root():
 @app.get("/ui")
 def ui_page():
     return FileResponse(LANDING_FILE)
+
+
+@app.get("/assets/factory-hero.png")
+def hero_image():
+    return FileResponse(HERO_IMAGE, media_type="image/png")
+
+
+@app.get("/assets/specprofstroy-logo.png")
+def brand_logo():
+    return FileResponse(BRAND_LOGO, media_type="image/png")
+
+
+@app.get("/assets/cemezit-horse.webp")
+def horse_image():
+    return FileResponse(HORSE_IMAGE, media_type="image/webp")
+
+
+@app.get("/assets/monitoring-background.jpg")
+def monitoring_background():
+    return FileResponse(MONITORING_BACKGROUND, media_type="image/jpeg")
 
 
 @app.get("/monitoring")
@@ -113,6 +183,21 @@ def production_page():
 @app.get("/alerts")
 def alerts_page():
     return FileResponse(ALERTS_PAGE)
+
+
+@app.get("/documents")
+def documents_page():
+    return FileResponse(DOCUMENTS_PAGE)
+
+
+@app.get("/reports")
+def reports_page():
+    return FileResponse(REPORTS_PAGE)
+
+
+@app.get("/assets/sections.css")
+def sections_stylesheet():
+    return FileResponse(SECTIONS_CSS, media_type="text/css")
 
 
 @app.get("/ui/scheme")

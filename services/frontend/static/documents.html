@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d2e">
+  <title>Документы оборудования — CEMEZIT</title>
+  <link rel="stylesheet" href="/assets/sections.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/ui">CEMEZIT</a>
+    <nav aria-label="Навигация"><a href="/ui">На главную</a><a href="/reports">Отчёты</a></nav>
+  </header>
+  <main>
+    <p class="eyebrow">Техническая документация</p>
+    <h1>Документы оборудования</h1>
+    <p class="lead">Паспорта, инструкции и акты для трансформаторов, электродвигателей и другого оборудования завода.</p>
+    <div class="grid">
+      <section class="panel">
+        <span class="label">Паспорта</span>
+        <h2>Паспорта оборудования</h2>
+        <p>Заводские характеристики, модели, серийные номера и сведения о вводе в эксплуатацию.</p>
+        <p class="empty">Файлы пока не добавлены.</p>
+      </section>
+      <section class="panel">
+        <span class="label">Инструкции</span>
+        <h2>Эксплуатация и обслуживание</h2>
+        <p>Руководства по эксплуатации, регламенты обслуживания и требования безопасности.</p>
+        <p class="empty">Файлы пока не добавлены.</p>
+      </section>
+      <section class="panel">
+        <span class="label">Акты</span>
+        <h2>Акты обслуживания</h2>
+        <p>Документы о выполненных работах, проверках и испытаниях оборудования.</p>
+        <p class="empty">Файлы пока не добавлены.</p>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>Оборудование и график обслуживания</h2>
+      <p>Реестр оборудования и планы работ находятся в разделе планово-технического обслуживания.</p>
+      <div class="toolbar"><a class="button" id="maintenance-link" href="http://localhost:8086/ui">Открыть реестр оборудования</a></div>
+      <p class="note">Сейчас это начальная структура раздела. Загрузка, хранение файлов и привязка документов к оборудованию ещё не реализованы.</p>
+    </section>
+  </main>
+  <footer>CEMEZIT · Производственная платформа</footer>
+  <script>
+    document.getElementById("maintenance-link").href = `${window.location.protocol}//${window.location.hostname}:8086/ui`;
+  </script>
+</body>
+</html>

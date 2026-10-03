@@ -27,7 +27,8 @@
       text-decoration: none;
       font-size: 13px;
       font-weight: 600;
-      white-space: nowrap;
+      max-width: min(320px, 100%);
+      text-align: center;
     }
     .pto-link:hover, .pto-link:focus-visible { background: rgba(255,255,255,.12); }
     .wrap { max-width: 1600px; margin: 0 auto; padding: 8px; }
@@ -88,7 +89,8 @@
   <header>
     <h1>Мониторинг по технологической схеме завода строительных материалов</h1>
     <div class="meta" id="meta">Подключение…</div>
-    <a class="pto-link" id="pto-link" href="http://127.0.0.1:8086/ui">ПТО</a>
+    <a class="pto-link" href="/ui">На главную</a>
+    <a class="pto-link" id="pto-link" href="http://127.0.0.1:8086/ui">Планово-техническое обслуживание</a>
   </header>
   <div class="wrap">
     <div class="scheme">

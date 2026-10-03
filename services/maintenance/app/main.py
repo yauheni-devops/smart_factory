@@ -2,15 +2,16 @@
 
 import calendar
 import base64
+import binascii
 import os
 import secrets
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
 import httpx
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from prometheus_client import Gauge
@@ -24,48 +25,129 @@ from app.db import engine, get_db
 from app.models import Base, Equipment, MaintenanceEvent, MaintenanceOrder, MaintenancePlan, MeterReading
 
 PTO_ACCESS_USERNAME = os.getenv("PTO_ACCESS_USERNAME", "pto")
+SESSION_COOKIE = "pto_session"
+SESSION_LIFETIME = timedelta(hours=8)
+sessions: dict[str, datetime] = {}
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+def valid_credentials(username: str, password: str) -> bool:
+    expected_password = os.getenv("PTO_ACCESS_PASSWORD", "")
+    return (
+        len(expected_password) >= 6
+        and secrets.compare_digest(username.encode(), PTO_ACCESS_USERNAME.encode())
+        and secrets.compare_digest(password.encode(), expected_password.encode())
+    )
+
+
+def authenticated(request: Request) -> bool:
+    token = request.cookies.get(SESSION_COOKIE)
+    if token:
+        expires_at = sessions.get(token)
+        if expires_at and expires_at > datetime.now(timezone.utc):
+            return True
+        sessions.pop(token, None)
+
+    header = request.headers.get("authorization", "")
+    try:
+        scheme, encoded = header.split(None, 1)
+        if scheme.lower() != "basic":
+            return False
+        username, password = base64.b64decode(encoded, validate=True).decode("utf-8").split(":", 1)
+    except (ValueError, UnicodeDecodeError, binascii.Error):
+        return False
+    return valid_credentials(username, password)
+
+
+def home_url(request: Request, destination: str) -> str:
+    """Return only a known local home page, never an arbitrary redirect target."""
+    host = request.url.hostname
+    if host not in {"localhost", "127.0.0.1"}:
+        host = "localhost"
+    port = 8080 if destination == "frontend" else 8082
+    return f"{request.url.scheme}://{host}:{port}/ui"
 
 app = FastAPI(
     title="construction-materials-maintenance",
     version="0.1.0",
-    description="Реестр оборудования, планы ПТО и контроль наработки.",
+    description="Реестр оборудования, планы планово-технического обслуживания и контроль наработки.",
 )
 
 
 @app.middleware("http")
 async def protect_maintenance_data(request, call_next):
-    """Require HTTP Basic authentication for the UI and maintenance API."""
+    """Require a login session or explicit Basic credentials for maintenance data."""
     path = request.url.path
     protected = path == "/ui" or path.startswith("/ui/") or path == "/api" or path.startswith("/api/")
     if not protected:
         return await call_next(request)
 
-    password = os.getenv("PTO_ACCESS_PASSWORD", "")
-    if len(password) < 6:
+    if len(os.getenv("PTO_ACCESS_PASSWORD", "")) < 6:
         return JSONResponse(
             status_code=503,
             content={"detail": "Задайте PTO_ACCESS_PASSWORD (не менее 6 символов) в корневом .env"},
         )
-
-    header = request.headers.get("authorization", "")
-    try:
-        scheme, token = header.split(None, 1)
-        if scheme.lower() != "basic":
-            raise ValueError("Unsupported authorization scheme")
-        decoded = base64.b64decode(token, validate=True).decode("utf-8")
-        username, supplied_password = decoded.split(":", 1)
-    except (ValueError, UnicodeDecodeError):
-        username, supplied_password = "", ""
-
-    username_ok = secrets.compare_digest(username.encode(), PTO_ACCESS_USERNAME.encode())
-    password_ok = secrets.compare_digest(supplied_password.encode(), password.encode())
-    if not (username_ok and password_ok):
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "Требуется пароль для раздела ПТО"},
-            headers={"WWW-Authenticate": 'Basic realm="Maintenance", charset="UTF-8"'},
-        )
+    if not authenticated(request):
+        if path == "/ui":
+            return RedirectResponse(url="/login", status_code=303)
+        return JSONResponse(status_code=401, content={"detail": "Требуется вход в раздел планово-технического обслуживания"})
     return await call_next(request)
+
+
+@app.get("/login")
+def login_page(request: Request, next: str = "pto"):
+    if authenticated(request):
+        target = home_url(request, next) if next in {"home", "frontend"} else "/ui"
+        return RedirectResponse(url=target, status_code=303)
+    return FileResponse(Path(__file__).resolve().parent / "static" / "login.html")
+
+
+@app.get("/assets/login-background.webp")
+def login_background():
+    path = Path(__file__).resolve().parent / "static" / "assets" / "login-background.webp"
+    return FileResponse(path, media_type="image/webp")
+
+
+@app.post("/login")
+def login(body: LoginRequest, request: Request):
+    if len(os.getenv("PTO_ACCESS_PASSWORD", "")) < 6:
+        raise HTTPException(503, "Задайте PTO_ACCESS_PASSWORD для раздела планово-технического обслуживания")
+    if not valid_credentials(body.username, body.password):
+        raise HTTPException(401, "Неверный логин или пароль")
+    now = datetime.now(timezone.utc)
+    for token, expires_at in list(sessions.items()):
+        if expires_at <= now:
+            sessions.pop(token, None)
+    token = secrets.token_urlsafe(32)
+    sessions[token] = now + SESSION_LIFETIME
+    response = JSONResponse({"status": "ok"})
+    response.set_cookie(
+        SESSION_COOKIE, token, max_age=int(SESSION_LIFETIME.total_seconds()),
+        httponly=True, samesite="strict", secure=request.url.scheme == "https", path="/",
+    )
+    return response
+
+
+@app.get("/session", status_code=204)
+def session_status(request: Request):
+    if not authenticated(request):
+        raise HTTPException(401, "Требуется вход в систему")
+
+
+@app.post("/logout")
+def logout(request: Request, next: str = "pto"):
+    sessions.pop(request.cookies.get(SESSION_COOKIE, ""), None)
+    response = (
+        RedirectResponse(url=f"/login?next={next}", status_code=303)
+        if next in {"home", "frontend"}
+        else JSONResponse({"status": "ok"})
+    )
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return response
 
 
 equipment_assets_total = Gauge("factory_equipment_assets_total", "Registered factory equipment assets.")
@@ -260,7 +342,7 @@ def bootstrap_from_catalog(db: Session = Depends(get_db)) -> dict:
                 MaintenancePlan(
                     id=plan_id,
                     site_id=site["id"],
-                    title="ПТО оборудования площадки",
+                    title="Планово-техническое обслуживание оборудования площадки",
                     scope="site",
                     interval_months=interval_months,
                     source_reference="Импортировано из каталога завода",
