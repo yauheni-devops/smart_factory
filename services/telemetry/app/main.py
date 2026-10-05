@@ -137,6 +137,7 @@ SECTIONS_CSS = STATIC_DIR / "assets" / "sections.css"
 HERO_IMAGE = STATIC_DIR / "assets" / "factory-hero.png"
 HORSE_IMAGE = STATIC_DIR / "assets" / "cemezit-horse.webp"
 BRAND_LOGO = STATIC_DIR / "assets" / "specprofstroy-logo.png"
+CEMEZIT_LOGO = STATIC_DIR / "assets" / "cemezit-logo.png"
 MONITORING_BACKGROUND = STATIC_DIR / "assets" / "monitoring-background.jpg"
 
 
@@ -158,6 +159,11 @@ def hero_image():
 @app.get("/assets/specprofstroy-logo.png")
 def brand_logo():
     return FileResponse(BRAND_LOGO, media_type="image/png")
+
+
+@app.get("/assets/cemezit-logo.png")
+def cemezit_logo():
+    return FileResponse(CEMEZIT_LOGO, media_type="image/png")
 
 
 @app.get("/assets/cemezit-horse.webp")

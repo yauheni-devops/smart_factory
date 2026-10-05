@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+ARG PYTHON_IMAGE=python:3.13-slim-bookworm@sha256:5024f48ba9441d4b13a95d3945abc6365538e3a31109833367a1923523c6efed
+FROM ${PYTHON_IMAGE} AS dependencies
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+WORKDIR /build
+COPY services/simulator/requirements.lock ./requirements.lock
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir -r requirements.lock
+
+FROM ${PYTHON_IMAGE} AS runtime
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+RUN groupadd --gid 10001 factory \
+    && useradd --uid 10001 --gid factory --no-create-home factory \
+    && mkdir -p /opt/factory/data \
+    && chown 10001:10001 /opt/factory/data
+WORKDIR /opt/factory/services/simulator
+COPY --from=dependencies /opt/venv /opt/venv
+COPY --chown=10001:10001 services/simulator/app ./app
+USER 10001:10001
+EXPOSE 8085
+HEALTHCHECK --interval=10s --timeout=4s --start-period=15s --retries=6 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8085/health', timeout=3).read()"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8085", "--no-access-log"]

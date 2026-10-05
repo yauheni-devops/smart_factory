@@ -65,11 +65,12 @@ def authenticated(request: Request) -> bool:
 
 def home_url(request: Request, destination: str) -> str:
     """Return only a known local home page, never an arbitrary redirect target."""
+    if destination == "frontend":
+        return "/ui"
     host = request.url.hostname
     if host not in {"localhost", "127.0.0.1"}:
         host = "localhost"
-    port = 8080 if destination == "frontend" else 8082
-    return f"{request.url.scheme}://{host}:{port}/ui"
+    return f"{request.url.scheme}://{host}:8082/ui"
 
 app = FastAPI(
     title="construction-materials-maintenance",

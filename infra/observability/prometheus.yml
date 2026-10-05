@@ -7,28 +7,27 @@ scrape_configs:
     static_configs:
       - targets: ["prometheus:9090"]
 
-  # The Python APIs are currently run on the host. Bind them to 0.0.0.0 so
-  # Docker Desktop / host-gateway can scrape their /metrics endpoints.
+  # API containers are scraped over the private Compose network.
   - job_name: factory-apis
     metrics_path: /metrics
     static_configs:
       - targets:
-          - "host.docker.internal:8081"
+          - "catalog:8081"
         labels:
           service: catalog
       - targets:
-          - "host.docker.internal:8082"
+          - "telemetry:8082"
         labels:
           service: telemetry
       - targets:
-          - "host.docker.internal:8083"
+          - "production:8083"
         labels:
           service: production
       - targets:
-          - "host.docker.internal:8085"
+          - "simulator:8085"
         labels:
           service: simulator
       - targets:
-          - "host.docker.internal:8086"
+          - "maintenance:8086"
         labels:
           service: maintenance

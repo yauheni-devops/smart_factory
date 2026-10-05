@@ -67,8 +67,7 @@
           return;
         }
         const destination = new URLSearchParams(window.location.search).get('next');
-        const port = destination === 'frontend' ? 8080 : 8082;
-        const home = `${window.location.protocol}//${window.location.hostname}:${port}/ui`;
+        const home = destination === 'frontend' ? '/ui' : `${window.location.protocol}//${window.location.hostname}:8082/ui`;
         window.location.replace(['home', 'frontend'].includes(destination) ? home : '/ui');
       } catch (_) {
         error.textContent = 'Не удалось связаться с сервисом планово-технического обслуживания.';

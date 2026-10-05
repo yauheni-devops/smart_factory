@@ -111,9 +111,10 @@
       if (!items.length) return '<p class="empty">Открытых заявок на обслуживание нет.</p>';
       return '<table><thead><tr><th>Заявка</th><th>Площадка</th><th>Срок</th><th>Ответственный</th><th>Статус</th></tr></thead><tbody>' + items.map(item => `<tr><td>${safe(item.title)}</td><td>${safe(item.site_id)}</td><td>${safe(item.due_at)}</td><td>${safe(item.assignee)}</td><td>${safe(item.status === "planned" ? "Запланирована" : "В работе")}</td></tr>`).join("") + '</tbody></table>';
     }
+    const maintenancePrefix = window.location.pathname.startsWith('/maintenance/') ? '/maintenance' : '';
     async function refresh() {
       try {
-        const [dashboardResponse, equipmentResponse] = await Promise.all([fetch('/api/dashboard'), fetch('/api/equipment')]);
+        const [dashboardResponse, equipmentResponse] = await Promise.all([fetch(`${maintenancePrefix}/api/dashboard`), fetch(`${maintenancePrefix}/api/equipment`)]);
         if (!dashboardResponse.ok || !equipmentResponse.ok) throw new Error(`HTTP ${dashboardResponse.status}/${equipmentResponse.status}`);
         const [data, equipmentData] = await Promise.all([dashboardResponse.json(), equipmentResponse.json()]);
         document.getElementById('equipment-count').textContent = data.equipment_count;
@@ -128,10 +129,11 @@
       } catch (error) { document.getElementById('updated').textContent = `Не удалось загрузить: ${error.message}`; }
     }
     document.getElementById('logout').addEventListener('click', async () => {
-      await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
-      window.location.replace('/login');
+      const loginTarget = maintenancePrefix ? '/login?next=frontend' : '/login';
+      await fetch(maintenancePrefix ? '/logout?next=frontend' : '/logout', { method: 'POST', credentials: 'same-origin' });
+      window.location.replace(loginTarget);
     });
-    document.getElementById('home-link').href = `${window.location.protocol}//${window.location.hostname}:8082/ui`;
+    document.getElementById('home-link').href = maintenancePrefix ? '/ui' : `${window.location.protocol}//${window.location.hostname}:8082/ui`;
     document.querySelectorAll('[role="tab"]').forEach(tab => tab.addEventListener('click', () => {
       document.querySelectorAll('[role="tab"]').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
       document.querySelectorAll('[role="tabpanel"]').forEach(panel => { panel.hidden = panel.id !== tab.getAttribute('aria-controls'); });

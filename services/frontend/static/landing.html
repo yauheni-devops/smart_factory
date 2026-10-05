@@ -46,7 +46,9 @@
       background: #fff;
     }
     .brand-name { grid-column: 2; grid-row: 2; align-self: center; width: 100%; max-width: 1100px; justify-self: center; font-size: clamp(20px, 2.5vw, 30px); font-weight: 750; line-height: 1.3; letter-spacing: .02em; text-align: center; }
-    .header-caption { grid-column: 3; grid-row: 2; align-self: center; justify-self: end; color: #bfd3c7; font-size: 12px; line-height: 1.6; letter-spacing: .1em; text-align: right; text-transform: uppercase; }
+    .header-brand { grid-column: 3; grid-row: 2; align-self: center; display: flex; align-items: center; justify-content: flex-end; gap: 14px; min-width: 0; }
+    .header-caption { color: #bfd3c7; font-size: 12px; line-height: 1.6; letter-spacing: .1em; text-align: right; text-transform: uppercase; }
+    .product-logo { display: block; width: clamp(76px, 7vw, 116px); height: auto; flex: 0 0 auto; border-radius: 6px; }
     .header-actions { grid-column: 3; grid-row: 1; display: flex; justify-self: end; align-items: center; justify-content: flex-end; }
     .header-actions form { margin: 0; }
     .logout-button { padding: 8px 12px; border: 1px solid #ffffff66; border-radius: 7px; color: #fff; background: transparent; font: inherit; cursor: pointer; }
@@ -162,10 +164,16 @@
       font-size: 12px;
     }
     .footer-mark { color: #9b6811; }
+    @media (max-width: 1100px) {
+      .header-brand { flex-direction: column; align-items: flex-end; gap: 6px; }
+      .header-caption { max-width: 150px; font-size: 10px; letter-spacing: .06em; }
+      .product-logo { width: 84px; }
+    }
     @media (max-width: 620px) {
       header { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 68px; gap: 12px 16px; }
       .header-actions { grid-column: 2; }
-      .header-caption { grid-column: 2; max-width: 140px; font-size: 10px; line-height: 1.5; }
+      .header-brand { grid-column: 2; grid-row: 2; }
+      .header-caption { max-width: 140px; line-height: 1.5; }
       .brand-name { grid-column: 1 / -1; grid-row: 3; }
       main { padding: 44px 20px 54px; }
       .intro { margin: 18px 0 28px; }
@@ -183,9 +191,12 @@
     <header>
       <img class="brand-logo" src="/assets/specprofstroy-logo.png" alt="ЗАО «СПЕЦПРОФСТРОЙ»" width="348" height="105">
       <div class="header-actions">
-        <form id="logout-form" method="post" action="http://127.0.0.1:8086/logout?next=home"><button class="logout-button" type="submit">Выйти</button></form>
+        <form id="logout-form" method="post" action="/logout?next=frontend"><button class="logout-button" type="submit">Выйти</button></form>
       </div>
-      <span class="header-caption">Производственная платформа</span>
+      <div class="header-brand">
+        <span class="header-caption">Производственная платформа</span>
+        <img class="product-logo" src="/assets/cemezit-logo.png" alt="ЦЕМЕЗИТ" width="170" height="128">
+      </div>
       <div class="brand-name">ЗАВОД ПО ВЫПУСКУ МАТЕРИАЛОВ ДЛЯ МОНОЛИТНЫХ ПОКРЫТИЙ ПОЛА &quot;CEMEZIT&quot;</div>
     </header>
     <main>
@@ -207,7 +218,7 @@
             </span>
             <span class="action-arrow" aria-hidden="true">›</span>
           </a>
-          <a class="action pto" id="pto-link" href="http://127.0.0.1:8086/ui">
+          <a class="action pto" id="pto-link" href="/maintenance/ui">
             <span class="action-icon" aria-hidden="true">
               <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
                 <path d="M7 3.5h7l4 4V21H7a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
@@ -282,9 +293,8 @@
     </footer>
   </div>
   <script>
-    document.getElementById("pto-link").href = `${window.location.protocol}//${window.location.hostname}:8086/ui`;
-    const destination = window.location.port === "8080" ? "frontend" : "home";
-    document.getElementById("logout-form").action = `${window.location.protocol}//${window.location.hostname}:8086/logout?next=${destination}`;
+    document.getElementById("pto-link").href = "/maintenance/ui";
+    document.getElementById("logout-form").action = "/logout?next=frontend";
   </script>
 </body>
 </html>

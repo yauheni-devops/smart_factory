@@ -2,6 +2,7 @@
 
 from datetime import date, datetime, timezone
 from uuid import uuid4
+import os
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
@@ -9,7 +10,7 @@ from pydantic import BaseModel, Field
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 
-CATALOG_URL = "http://127.0.0.1:8081"
+CATALOG_URL = os.environ.get("CATALOG_URL", "http://127.0.0.1:8081").rstrip("/")
 STATUSES = {"created", "in_progress", "review", "closed", "rejected"}
 TRANSITIONS = {
     "created": {"in_progress", "rejected"},

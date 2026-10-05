@@ -90,7 +90,7 @@
     <h1>Мониторинг по технологической схеме завода строительных материалов</h1>
     <div class="meta" id="meta">Подключение…</div>
     <a class="pto-link" href="/ui">На главную</a>
-    <a class="pto-link" id="pto-link" href="http://127.0.0.1:8086/ui">Планово-техническое обслуживание</a>
+    <a class="pto-link" id="pto-link" href="/maintenance/ui">Планово-техническое обслуживание</a>
   </header>
   <div class="wrap">
     <div class="scheme">
@@ -121,7 +121,7 @@
     </section>
   </div>
   <script>
-    document.getElementById("pto-link").href = `${window.location.protocol}//${window.location.hostname}:8086/ui`;
+    document.getElementById("pto-link").href = "/maintenance/ui";
     const METRICS = {
       power_kw: "P", lighting_kw: "Осв", voltage_lv_v: "Uнн", voltage_v: "U",
       current_a: "I", temp_c: "t", oil_temp_c: "t масла",

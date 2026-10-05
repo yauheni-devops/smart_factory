@@ -39,13 +39,13 @@
     <section class="panel">
       <h2>Оборудование и график обслуживания</h2>
       <p>Реестр оборудования и планы работ находятся в разделе планово-технического обслуживания.</p>
-      <div class="toolbar"><a class="button" id="maintenance-link" href="http://localhost:8086/ui">Открыть реестр оборудования</a></div>
+      <div class="toolbar"><a class="button" id="maintenance-link" href="/maintenance/ui">Открыть реестр оборудования</a></div>
       <p class="note">Сейчас это начальная структура раздела. Загрузка, хранение файлов и привязка документов к оборудованию ещё не реализованы.</p>
     </section>
   </main>
   <footer>CEMEZIT · Производственная платформа</footer>
   <script>
-    document.getElementById("maintenance-link").href = `${window.location.protocol}//${window.location.hostname}:8086/ui`;
+    document.getElementById("maintenance-link").href = "/maintenance/ui";
   </script>
 </body>
 </html>
