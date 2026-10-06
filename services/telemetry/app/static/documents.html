@@ -15,32 +15,58 @@
   <main>
     <p class="eyebrow">Техническая документация</p>
     <h1>Документы оборудования</h1>
-    <p class="lead">Паспорта, инструкции и акты для трансформаторов, электродвигателей и другого оборудования завода.</p>
-    <div class="grid">
-      <section class="panel">
-        <span class="label">Паспорта</span>
-        <h2>Паспорта оборудования</h2>
-        <p>Заводские характеристики, модели, серийные номера и сведения о вводе в эксплуатацию.</p>
-        <p class="empty">Файлы пока не добавлены.</p>
-      </section>
-      <section class="panel">
-        <span class="label">Инструкции</span>
-        <h2>Эксплуатация и обслуживание</h2>
-        <p>Руководства по эксплуатации, регламенты обслуживания и требования безопасности.</p>
-        <p class="empty">Файлы пока не добавлены.</p>
-      </section>
-      <section class="panel">
-        <span class="label">Акты</span>
-        <h2>Акты обслуживания</h2>
-        <p>Документы о выполненных работах, проверках и испытаниях оборудования.</p>
-        <p class="empty">Файлы пока не добавлены.</p>
-      </section>
-    </div>
+    <p class="lead">Руководства и паспорта оборудования. В библиотеке 3 документа: их можно открыть в новой вкладке или скачать в формате PDF.</p>
+    <section aria-labelledby="drives-heading">
+      <h2 id="drives-heading">Частотные преобразователи</h2>
+      <div class="grid document-grid">
+        <article class="panel document-card">
+          <span class="label">Руководство по эксплуатации</span>
+          <h3>Kinco FV100</h3>
+          <p>Руководство пользователя частотных преобразователей серии FV100.</p>
+          <p class="document-meta">PDF · English · 119 страниц · 2,4 МБ</p>
+          <div class="document-actions">
+            <a class="button" href="/equipment-documents/kinco-fv100-user-manual-en.pdf" target="_blank" rel="noopener" aria-label="Открыть руководство Kinco FV100 в новой вкладке">Открыть PDF</a>
+            <a class="button secondary" href="/equipment-documents/kinco-fv100-user-manual-en.pdf?download=1" download="kinco-fv100-user-manual-en.pdf" aria-label="Скачать руководство Kinco FV100">Скачать</a>
+          </div>
+        </article>
+        <article class="panel document-card">
+          <span class="label">Руководство по эксплуатации</span>
+          <h3>ABB ACS310</h3>
+          <p>Руководство по эксплуатации приводов ACS310 на русском языке.</p>
+          <p class="document-meta">PDF · Русский · 418 страниц · 5,5 МБ</p>
+          <div class="document-actions">
+            <a class="button" href="/equipment-documents/abb-acs310-user-manual-ru.pdf" target="_blank" rel="noopener" aria-label="Открыть руководство ABB ACS310 в новой вкладке">Открыть PDF</a>
+            <a class="button secondary" href="/equipment-documents/abb-acs310-user-manual-ru.pdf?download=1" download="abb-acs310-user-manual-ru.pdf" aria-label="Скачать руководство ABB ACS310">Скачать</a>
+          </div>
+        </article>
+      </div>
+    </section>
+    <section aria-labelledby="sockets-heading">
+      <h2 id="sockets-heading">Электрические розетки</h2>
+      <div class="grid document-grid">
+        <article class="panel document-card">
+          <span class="label">Паспорт оборудования</span>
+          <h3>ABB Levit</h3>
+          <p>Паспорт электрических розеток серии Levit, изготовитель ABB Elektro-Praga. Документ не относится к частотным преобразователям.</p>
+          <p class="document-meta">PDF · Русский · 6 страниц · 385 КБ</p>
+          <div class="document-actions">
+            <a class="button" href="/equipment-documents/abb-levit-sockets-passport-ru.pdf" target="_blank" rel="noopener" aria-label="Открыть паспорт розеток ABB Levit в новой вкладке">Открыть PDF</a>
+            <a class="button secondary" href="/equipment-documents/abb-levit-sockets-passport-ru.pdf?download=1" download="abb-levit-sockets-passport-ru.pdf" aria-label="Скачать паспорт розеток ABB Levit">Скачать</a>
+          </div>
+        </article>
+        <article class="panel">
+          <span class="label">Акты</span>
+          <h3>Акты обслуживания</h3>
+          <p>Документы о выполненных работах, проверках и испытаниях оборудования.</p>
+          <p class="empty">Акты пока не добавлены.</p>
+        </article>
+      </div>
+    </section>
     <section class="panel">
       <h2>Оборудование и график обслуживания</h2>
       <p>Реестр оборудования и планы работ находятся в разделе планово-технического обслуживания.</p>
       <div class="toolbar"><a class="button" id="maintenance-link" href="http://localhost:8086/ui">Открыть реестр оборудования</a></div>
-      <p class="note">Сейчас это начальная структура раздела. Загрузка, хранение файлов и привязка документов к оборудованию ещё не реализованы.</p>
+      <p class="note">PDF сохранены без изменений. Привязка к конкретному цеху или инвентарному номеру пока не задана; перед использованием сверяйте модель и версию оборудования. Загрузка новых файлов через сайт ещё не реализована.</p>
     </section>
   </main>
   <footer>CEMEZIT · Производственная платформа</footer>

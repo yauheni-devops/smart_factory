@@ -37,9 +37,10 @@ PROTECTED_PAGES = {"/ui", "/monitoring", "/production", "/alerts", "/documents",
 @app.middleware("http")
 async def protect_visitor_pages(request: Request, call_next):
     path = request.url.path
-    protected = request.method == "GET" and (
+    protected = request.method in {"GET", "HEAD"} and (
         path in PROTECTED_PAGES or path.startswith("/ui/")
         or path.startswith("/assets/")
+        or path.startswith("/equipment-documents/")
         or path == "/readings" or path.startswith("/readings/")
     )
     if not protected:
@@ -132,6 +133,12 @@ MONITORING_FILE = STATIC_DIR / "index.html"
 PRODUCTION_PAGE = STATIC_DIR / "production.html"
 ALERTS_PAGE = STATIC_DIR / "alerts.html"
 DOCUMENTS_PAGE = STATIC_DIR / "documents.html"
+EQUIPMENT_DOCUMENTS_DIR = Path(__file__).resolve().parents[3] / "data" / "equipment-documents"
+EQUIPMENT_DOCUMENT_FILES = frozenset({
+    "kinco-fv100-user-manual-en.pdf",
+    "abb-acs310-user-manual-ru.pdf",
+    "abb-levit-sockets-passport-ru.pdf",
+})
 REPORTS_PAGE = STATIC_DIR / "reports.html"
 SECTIONS_CSS = STATIC_DIR / "assets" / "sections.css"
 HERO_IMAGE = STATIC_DIR / "assets" / "factory-hero.png"
@@ -194,6 +201,20 @@ def alerts_page():
 @app.get("/documents")
 def documents_page():
     return FileResponse(DOCUMENTS_PAGE)
+
+
+@app.api_route("/equipment-documents/{filename}", methods=["GET", "HEAD"])
+def equipment_document(filename: str, download: bool = False):
+    path = EQUIPMENT_DOCUMENTS_DIR / filename
+    if filename not in EQUIPMENT_DOCUMENT_FILES or not path.is_file():
+        raise HTTPException(status_code=404, detail="Документ не найден")
+    return FileResponse(
+        path,
+        media_type="application/pdf",
+        filename=filename,
+        content_disposition_type="attachment" if download else "inline",
+        headers={"Cache-Control": "private, no-store"},
+    )
 
 
 @app.get("/reports")

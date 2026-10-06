@@ -18,6 +18,7 @@ RUN groupadd --gid 10001 factory \
 WORKDIR /opt/factory/services/telemetry
 COPY --from=dependencies /opt/venv /opt/venv
 COPY --chown=10001:10001 services/telemetry/app ./app
+COPY --chown=10001:10001 data/equipment-documents/*.pdf /opt/factory/data/equipment-documents/
 USER 10001:10001
 EXPOSE 8082
 HEALTHCHECK --interval=10s --timeout=4s --start-period=15s --retries=6 \
